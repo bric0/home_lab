@@ -8,6 +8,7 @@ resource "proxmox_virtual_environment_download_file" "ubuntu-24-04" {
   checksum_algorithm    = var.ubuntu_image_checksum_algorithm
   overwrite             = true
   overwrite_unmanaged   = true
+#   verify = false
 }
 
 resource "proxmox_virtual_environment_file" "user_config" {

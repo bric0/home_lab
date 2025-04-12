@@ -9,20 +9,20 @@ variable "pve_endpoint" {
     description = "API endpoint URL"
 }
 
-variable "pve_password" {
-    type        = string
-    description = "Password"
-}
-
-variable "pve_username" {
-    type        = string
-    description = "Username"
-}
-
-# variable "pve_api_token" {
+# variable "pve_password" {
 #     type        = string
-#     description = "API token"
+#     description = "Password"
 # }
+
+# variable "pve_username" {
+#     type        = string
+#     description = "Username"
+# }
+
+variable "pve_api_token" {
+    type        = string
+    description = "API token"
+}
 
 variable "pve_node" {
     type        = string
@@ -37,7 +37,7 @@ variable "ubuntu_image_url" {
 variable "ubuntu_image_checksum_algorithm" {
     type        = string
     description = "Checksum algo used by image"
-    default      = "sha512"
+    default      = "sha256"
 }
 
 variable "ubuntu_image_checksum" {
