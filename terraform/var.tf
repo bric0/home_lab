@@ -19,28 +19,28 @@ variable "pve_username" {
     description = "Username"
 }
 
-variable "pve_api_token" {
-    type        = string
-    description = "API token"
-}
+# variable "pve_api_token" {
+#     type        = string
+#     description = "API token"
+# }
 
 variable "pve_node" {
     type        = string
     description = "Node where install elements"
     default     = ""
 }
-variable "debian_image_url" {
+variable "ubuntu_image_url" {
     type        = string
-    description = "The URL for the latest Debian 12 Bookworm qcow2 image"
+    description = "The URL for the latest ubuntu 24.04.2 noble qcow2 image"
     default     = ""
 }
-variable "debian_image_checksum_algorithm" {
+variable "ubuntu_image_checksum_algorithm" {
     type        = string
     description = "Checksum algo used by image"
     default      = "sha512"
 }
 
-variable "debian_image_checksum" {
+variable "ubuntu_image_checksum" {
     type        = string
     description = "SHA Digest of the image"
     default     = ""
