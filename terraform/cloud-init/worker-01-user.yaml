@@ -1,6 +1,8 @@
 #cloud-config
-hostname: home-controller-01
+hostname: home-worker-01
+package_upgrade: true
 users:
+  - default
   - name: brico
     gecos: My simple user
     ssh_authorized_keys:

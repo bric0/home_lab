@@ -20,8 +20,8 @@ variable "pve_username" {
 }
 
 # variable "pve_api_token" {
-#     type        = string
-#     description = "API token"
+#   type        = string
+#   description = "API token"
 # }
 
 variable "pve_node" {
@@ -45,3 +45,4 @@ variable "ubuntu_image_checksum" {
   description = "SHA Digest of the image"
   default     = ""
 }
+

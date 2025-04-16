@@ -1,0 +1,12 @@
+#cloud-config
+hostname: home-controller-01
+package_upgrade: true
+users:
+  - default
+  - name: brico
+    gecos: My simple user
+    ssh_authorized_keys:
+      - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBMeh4JmSxMh2YO2biDzQpCkUxjkGMjsAoYIXKupEJOt9rvA2X3AjSZZz/hF9sbV/GWQJaEkhpukVWE0WBXHm98Q=
+    lock_passwd: false
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    shell: /bin/bash

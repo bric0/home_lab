@@ -1,6 +1,12 @@
 #cloud-config
-package_update: true
-packages:
-  - qemu-guest-agent
 runcmd:
-  - systemctl enable --now qemu-guest-agent
+  - sudo apt update
+  - sudo apt install -y qemu-guest-agent net-tools
+  - sudo timedatectl set-timezone UTC
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent
+  - echo "done" > /tmp/cloud-config.done
+  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+  - curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+  - sudo apt-get update
+  - sudo apt-get install tailscale -y
