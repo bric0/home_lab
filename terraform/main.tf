@@ -53,27 +53,13 @@ resource "proxmox_virtual_environment_file" "vendor_config" {
   }
 }
 
-# resource "proxmox_virtual_environment_file" "network_config" {
-#   content_type = "snippets"
-#   datastore_id = "local"
-#   node_name    = var.pve_node
-
-#   source_raw {
-#     data      = file("cloud-init/network-config.yaml")
-#     file_name = "network-config.yaml"
-#   }
-# }
-
-resource "proxmox_virtual_environment_user" "operations_automation" {
-
-}
-
 
 resource "proxmox_virtual_environment_vm" "ubuntu_24_04_template" {
   depends_on = [
-    proxmox_virtual_environment_file.user_config,
+    proxmox_virtual_environment_file.controller_01_user,
+    proxmox_virtual_environment_file.worker_01_user,
+    proxmox_virtual_environment_file.worker_02_user,
     proxmox_virtual_environment_file.vendor_config,
-    # proxmox_virtual_environment_file.network_config
   ]
 
   name        = "ubuntu-template"
@@ -97,6 +83,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_24_04_template" {
     iothread     = true
     discard      = "on"
     ssd          = true
+    size         = 40
   }
 
   network_device {
@@ -112,16 +99,6 @@ resource "proxmox_virtual_environment_vm" "ubuntu_24_04_template" {
     enabled = true
     timeout = "5m"
   }
-
-  initialization {
-    ip_config {
-      ipv4 {
-        address = "dhcp"
-      }
-    }
-    # network_data_file_id = proxmox_virtual_environment_file.network_config.id
-    vendor_data_file_id = proxmox_virtual_environment_file.vendor_config.id
-  }
 }
 
 resource "proxmox_virtual_environment_vm" "home_controller_01" {
@@ -135,7 +112,13 @@ resource "proxmox_virtual_environment_vm" "home_controller_01" {
   }
 
   initialization {
-    user_data_file_id = proxmox_virtual_environment_file.controller_01_user.id
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
+    vendor_data_file_id = proxmox_virtual_environment_file.vendor_config.id
+    user_data_file_id   = proxmox_virtual_environment_file.controller_01_user.id
   }
 }
 
@@ -153,7 +136,13 @@ resource "proxmox_virtual_environment_vm" "home_worker_01" {
   }
 
   initialization {
-    user_data_file_id = proxmox_virtual_environment_file.worker_01_user.id
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
+    vendor_data_file_id = proxmox_virtual_environment_file.vendor_config.id
+    user_data_file_id   = proxmox_virtual_environment_file.worker_01_user.id
   }
 }
 
@@ -172,7 +161,13 @@ resource "proxmox_virtual_environment_vm" "home_worker_02" {
 
 
   initialization {
-    user_data_file_id = proxmox_virtual_environment_file.worker_02_user.id
+    ip_config {
+      ipv4 {
+        address = "dhcp"
+      }
+    }
+    vendor_data_file_id = proxmox_virtual_environment_file.vendor_config.id
+    user_data_file_id   = proxmox_virtual_environment_file.worker_02_user.id
   }
 }
 

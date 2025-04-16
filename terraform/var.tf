@@ -19,11 +19,6 @@ variable "pve_username" {
   description = "Username"
 }
 
-# variable "pve_api_token" {
-#   type        = string
-#   description = "API token"
-# }
-
 variable "pve_node" {
   type        = string
   description = "Node where install elements"
