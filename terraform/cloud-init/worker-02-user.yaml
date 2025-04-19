@@ -1,5 +1,5 @@
 #cloud-config
-hostname: home-worker-01
+hostname: home-worker-02
 package_upgrade: true
 users:
   - default

@@ -10,7 +10,7 @@
 #
 # https://myheadscale.example.com:443
 #
-server_url: https://head.brico.bzh:443
+server_url: https://hs.brico.bzh:443
 
 # Address to listen to / bind to on the server
 #
@@ -206,7 +206,7 @@ acme_email: "bric0l@proton.me"
 #acme_email: ""
 
 # Domain name to request a TLS certificate for:
-tls_letsencrypt_hostname: "head.brico.bzh"
+tls_letsencrypt_hostname: "hs.brico.bzh"
 #tls_letsencrypt_hostname: ""
 
 # Path to store certificates and metadata needed by
@@ -274,7 +274,7 @@ dns:
   # `base_domain` must be a FQDN, without the trailing dot.
   # The FQDN of the hosts will be
   # `hostname.base_domain` (e.g., _myhost.example.com_).
-  base_domain: magic.brico.bzh
+  base_domain: mc.brico.bzh
 
   # List of DNS servers to expose to clients.
   nameservers:
