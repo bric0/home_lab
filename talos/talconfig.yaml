@@ -1,0 +1,75 @@
+---
+clusterName: home
+talosVersion: v1.12.2
+kubernetesVersion: v1.35.0
+endpoint: https://10.10.0.105:6443
+domain: k8s.lan 
+additionalApiServerCertSans:
+  - api.k8s.internal
+clusterPodNets:
+  - 10.10.10.0/23
+clusterSvcNets:
+  - 10.10.20.0/24
+cniConfig:
+  name: none
+patches:
+  - |-
+    cluster: 
+      discovery: 
+        enabled: false
+  - |-
+    machine:
+      time:
+        disabled: false 
+        servers:
+            - time.cloudflare.com
+        bootTimeout: 2m0s 
+  - |-
+    machine: 
+      network:
+        nameservers:
+          - 10.10.0.1
+  - |-
+    machine:
+      nodeLabels: 
+        topology.kubernetes.io/region: home
+        topology.kubernetes.io/zone: pve-01
+  - |-
+    machine: 
+      install:
+        image: factory.talos.dev/nocloud-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515:v1.12.2 
+inlineManifests:
+  - name: cilium
+    contents: "@./manifests/cilium.yaml"
+nodes:
+  - hostname: talos-cp-01
+    ipAddress: 10.10.0.101 
+    controlPlane: true
+    installDisk: /dev/sda
+    machineSpec:
+      arch: amd64
+    networkInterfaces:
+      - interface: eth0 
+        addresses:
+          - 10.10.0.101/16
+        routes:
+          - gateway: 10.10.0.1
+        vip:
+          ip: 10.10.0.105
+  - hostname: talos-worker-01 
+    ipAddress: 10.10.0.111 
+    controlPlane: false
+    installDisk: /dev/sda
+    networkInterfaces:
+      - interface: eth0 
+        addresses:
+          - 10.10.0.111/16
+        routes:
+          - gateway: 10.10.0.1
+controlPlane:
+  patches: 
+   - |-
+      cluster:
+        proxy: 
+          disabled: true
+

@@ -1,12 +1,18 @@
-resource "proxmox_vm_qemu" "talos_node" {
+resource "proxmox_virtual_environment_vm" "talos_node" {
   name        = var.node_name
-  description        = "Talos Linux created with OpenTofu"
-  target_node = var.pve_node
+  description = "Talos Linux created with OpenTofu"
+  node_name   = var.pve_node
   
-  bios     = "seabios"
-  start_at_node_boot   = true
-  agent    = 1
-  os_type  = "l26"
+  bios    = "seabios"
+  on_boot = true
+  
+  agent {
+    enabled = true
+  }
+  
+  operating_system {
+    type = "l26"
+  }
   
   cpu {
     cores   = var.cpu_number
@@ -14,46 +20,46 @@ resource "proxmox_vm_qemu" "talos_node" {
     type    = "host"
   }
   
-  memory = var.memory_size
+  memory {
+    dedicated = var.memory_size
+  }
   
-  disks {
-    scsi {
-      scsi0 {
-        disk {
-          storage = "local-lvm"
-          size    = var.disk_size
-          iothread = true
-          discard = true
-        }
-      }
-    }
-    
-    ide {
-      ide2 {
-        cdrom {
-          iso = "local:iso/${var.talos_image_name}"
-        }
+  disk {
+    datastore_id = "local-lvm"
+    size         = var.disk_size
+    interface    = "scsi0"
+    iothread     = false
+    discard      = "on"
+  }
+  
+  cdrom {
+    file_id   = "local:iso/${var.talos_image_name}"
+    interface = "ide2"
+  }
+  
+  network_device {
+    bridge  = "vmbr0"
+    model   = "virtio"
+    vlan_id = 10
+  }
+  
+  initialization {
+    ip_config {
+      ipv4 {
+        address = "dhcp"
       }
     }
   }
-  
-  network {
-    id     = 0
-    model  = "virtio"
-    bridge = "vmbr0"
-    tag = 10
-  }
- 
-  ipconfig0 = "ip=dhcp"
 
-  boot = "order=scsi0;ide2"
+  boot_order = ["scsi0", "ide2"]
   
-  scsihw = "virtio-scsi-pci"
+  scsi_hardware = "virtio-scsi-pci"
   
   lifecycle {
     ignore_changes = [
-      network,
+      network_device,
     ]
   }
 }
+
 

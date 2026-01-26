@@ -1,0 +1,5 @@
+home-cluster-talos-cp-01.yaml
+home-cluster-talos-worker-01.yaml
+talosconfig
+home-talos-cp-01.yaml
+home-talos-worker-01.yaml

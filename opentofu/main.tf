@@ -10,7 +10,7 @@ module "talos_cp_01" {
 
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 40
+  disk_size   = 30 
 
   talos_version          = var.talos_version
   talos_image_name       = var.talos_image_name
@@ -28,7 +28,7 @@ module "talos_worker_01" {
 
   cpu_number  = 4
   memory_size = 8192 
-  disk_size   = 60
+  disk_size   = 30
 
   talos_version          = var.talos_version
   talos_image_name       = var.talos_image_name
