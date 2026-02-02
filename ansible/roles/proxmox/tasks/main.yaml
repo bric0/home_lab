@@ -1,0 +1,50 @@
+- name: Copy firewall configuration file
+  ansible.builtin.copy:
+    src: cluster.fw 
+    dest: /etc/pve/firewall/cluster.fw
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Mettre à jour le cache APT
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Installer fail2ban et sudo
+  ansible.builtin.apt:
+    name:
+      - fail2ban
+      - sudo
+    state: present
+  become: yes
+
+- name: Copier la configuration jail pour fail2ban
+  ansible.builtin.copy:
+    src: /etc/fail2ban/jail.conf
+    dest: /etc/fail2ban/jail.local
+    remote_src: yes
+    force: no
+  become: yes
+
+- name: Créer le filtre Proxmox pour fail2ban
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/filter.d/proxmox.conf
+    content: |
+      [Definition]
+      failregex = pvedaemon\[.*authentication failure; rhost=<HOST> user=.* msg=.*
+      ignoreregex =
+      journalmatch = _SYSTEMD_UNIT=pvedaemon.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: yes
+
+- name: Démarrer et activer fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+  become: yes
+

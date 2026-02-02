@@ -1,0 +1,7 @@
+---
+- name: Configuration du serveur Proxmox
+  hosts: proxmox
+  become: yes
+  
+  roles:
+    - proxmox

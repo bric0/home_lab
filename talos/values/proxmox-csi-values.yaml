@@ -1,0 +1,30 @@
+# proxmox-csi.yaml
+
+config:
+  clusters:
+    - url: https://192.168.10.1:8006/api2/json
+      insecure: true 
+      token_id: "kubernetes-csi@pve!csi"
+      token_secret: $PROXMOX_CSI_PLUGIN_TOKEN
+      region: home 
+
+# Deploy Node CSI driver only on proxmox nodes
+node:
+  tolerations:
+    - operator: Exists
+
+# Deploy CSI controller only on control-plane nodes
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    effect: NoSchedule
+
+# Define storage classes
+# See https://pve.proxmox.com/wiki/Storage
+storageClass:
+  - name: proxmox-data
+    storage: local-lvm # Bien mettre le nom de la méthode de stockage utilisait sur Proxmox (voir Datacenter > Storage)
+    reclaimPolicy: Delete
+    fstype: ext4
+    cache: writethrough

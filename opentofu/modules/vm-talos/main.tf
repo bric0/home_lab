@@ -5,7 +5,7 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
   
   bios    = "seabios"
   on_boot = true
-  
+ 
   agent {
     enabled = true
   }
@@ -38,9 +38,9 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
   }
   
   network_device {
-    bridge  = "vmbr0"
+    bridge  = "vmbr1"
     model   = "virtio"
-    vlan_id = 10
+    vlan_id = var.vlan_id 
   }
   
   initialization {
@@ -50,6 +50,8 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
       }
     }
   }
+
+  tags = var.vm_tags
 
   boot_order = ["scsi0", "ide2"]
   

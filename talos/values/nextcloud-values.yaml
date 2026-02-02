@@ -1,0 +1,8 @@
+persistence:
+  enabled: true
+  storageClass: proxmox-data
+  size: 10Gi
+
+# internalDatabase:
+#  enabled: false
+    

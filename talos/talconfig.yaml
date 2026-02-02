@@ -2,14 +2,14 @@
 clusterName: home
 talosVersion: v1.12.2
 kubernetesVersion: v1.35.0
-endpoint: https://10.10.0.105:6443
+endpoint: https://10.40.0.105:6443
 domain: k8s.lan 
 additionalApiServerCertSans:
   - api.k8s.internal
 clusterPodNets:
-  - 10.10.10.0/23
+  - 10.40.10.0/23
 clusterSvcNets:
-  - 10.10.20.0/24
+  - 10.40.20.0/24
 cniConfig:
   name: none
 patches:
@@ -28,12 +28,12 @@ patches:
     machine: 
       network:
         nameservers:
-          - 10.10.0.1
+          - 10.40.0.1
   - |-
     machine:
       nodeLabels: 
         topology.kubernetes.io/region: home
-        topology.kubernetes.io/zone: pve-01
+        topology.kubernetes.io/zone: ovh-pve-01
   - |-
     machine: 
       install:
@@ -41,9 +41,11 @@ patches:
 inlineManifests:
   - name: cilium
     contents: "@./manifests/cilium.yaml"
+  - name: proxmox-csi
+    contents: "@./manifests/proxmox-csi.yaml"
 nodes:
   - hostname: talos-cp-01
-    ipAddress: 10.10.0.101 
+    ipAddress: 10.40.0.101 
     controlPlane: true
     installDisk: /dev/sda
     machineSpec:
@@ -51,25 +53,25 @@ nodes:
     networkInterfaces:
       - interface: eth0 
         addresses:
-          - 10.10.0.101/16
+          - 10.40.0.101/16
         routes:
-          - gateway: 10.10.0.1
+          - gateway: 10.40.0.1
         vip:
-          ip: 10.10.0.105
+          ip: 10.40.0.105
   - hostname: talos-worker-01 
-    ipAddress: 10.10.0.111 
+    ipAddress: 10.40.0.111 
     controlPlane: false
     installDisk: /dev/sda
     networkInterfaces:
       - interface: eth0 
         addresses:
-          - 10.10.0.111/16
+          - 10.40.0.111/16
         routes:
-          - gateway: 10.10.0.1
+          - gateway: 10.40.0.1
 controlPlane:
   patches: 
    - |-
       cluster:
         proxy: 
-          disabled: true
+          disabled: true 
 

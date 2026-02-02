@@ -61,4 +61,14 @@ variable "disk_size" {
   default     = 20
 }
 
+variable "vlan_id" {
+  description = "Vlan ID"
+  type        = number
+  default     = 0 
+}
 
+variable "vm_tags" {
+  description = "VM tags"
+  type        = list 
+  default     = [] 
+}
