@@ -1,0 +1,27 @@
+---
+pve_public_interface: "enp5s0f0"
+pve_vlan_interface: "enp5s0f1"
+pve_public_ip: "152.228.222.18/24"
+pve_public_gateway: "152.228.222.254"
+pve_mac_address: "a0:42:3f:49:50:1a"
+
+pve_management_ip: "192.168.10.1/29"
+pve_management_subnet: "192.168.10.0/29"
+
+pve_vlan_ids:
+  - 10
+  - 20
+  - 30
+  - 40
+
+pve_dnat_rules:
+  - comment: "DNAT for VPN access"
+    proto: tcp
+    public_port: 443
+    dest_ip: "192.168.10.2"
+    dest_port: 443
+  - comment: "DNAT for SSH access to firewall"
+    proto: tcp
+    public_port: 2222
+    dest_ip: "192.168.10.2"
+    dest_port: 22

@@ -1,3 +1,17 @@
-/opentofu/.terraform
-/*/.env
+# Secrets
+.env
+!.env.template
+*.pkrvars.hcl
+!*.pkrvars.hcl.template
+
+# Terraform / OpenTofu
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Packer
+packer_cache/
+
+# Talos
 /talos/manifests

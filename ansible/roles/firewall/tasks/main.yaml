@@ -1,0 +1,9 @@
+---
+- name: Setup networking and system
+  ansible.builtin.import_tasks: setup.yaml
+
+- name: Deploy nftables rules
+  ansible.builtin.import_tasks: nftables.yaml
+
+- name: Join Tailscale network
+  ansible.builtin.import_tasks: join-tailscale.yaml

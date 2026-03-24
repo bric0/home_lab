@@ -7,15 +7,16 @@ all:
       vars:
         ansible_user: root
         ansible_ssh_private_key_file: ~/.ssh/ovh-pve-01
+
     firewall:
       hosts:
         homelab-firewall:
           ansible_host: 152.228.222.18
           ansible_port: 2222
-          ansible_user: brico
-          ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
       vars:
-    
+        ansible_user: brico
+        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
+
     infra:
       hosts:
         homelab-vpn:
@@ -26,4 +27,5 @@ all:
           ansible_host: 10.20.0.10
       vars:
         ansible_user: brico
-        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab   
+        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
+        ansible_ssh_common_args: '-o ProxyJump=brico@152.228.222.18:2222'

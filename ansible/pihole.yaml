@@ -1,0 +1,7 @@
+---
+- name: Setting up Pi-hole
+  hosts: homelab-pihole
+  become: true
+  roles:
+    - common
+    - pihole

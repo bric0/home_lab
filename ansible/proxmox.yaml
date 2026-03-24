@@ -1,6 +1,0 @@
----
-- name: Configure pve node
-  hosts: pve_01
-  become: yes
-  roles:
-    - proxmox

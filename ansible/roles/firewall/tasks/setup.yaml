@@ -1,43 +1,37 @@
+---
 - name: Setting up networking
-  block: 
+  block:
     - name: Copy disable Cloud-Init networking file
       ansible.builtin.copy:
         src: 99-custom-networking.cfg
         dest: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
         owner: root
         group: root
-        mode: 644
-      become: true
-
-    - name: Copy interfaces configuration
-      ansible.builtin.copy: 
-        src: interfaces
-        dest: /etc/network/interfaces
-        owner: root
-        group: root
-        mode: 644
-      register: network_config 
-      become: true
-
-    - name: Restart networking
-      ansible.builtin.systemd_service:
-        name: networking.service
-        state: restarted
-        enabled: true
-      become: true
+        mode: '0644'
 
     - name: Install vlan package
       ansible.builtin.apt:
         pkg:
           - vlan
-      become: true
+        update_cache: true
 
-    - name: Load vlan module
-      ansible.builtin.command: >
-        modprobe 8021q
-      become: true
+    - name: Load 8021q module
+      ansible.builtin.command: modprobe 8021q
+      changed_when: false
 
-    - name: Load vlan module at startup 
-      ansible.builtin.command: >
-        echo "8021q" >> /etc/modules 
-      become: true
+    - name: Ensure 8021q module loads at boot
+      ansible.builtin.lineinfile:
+        path: /etc/modules
+        line: "8021q"
+        state: present
+
+    - name: Deploy interfaces configuration
+      ansible.builtin.template:
+        src: interfaces.j2
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: '0644'
+        backup: true
+      notify: Restart networking
+  become: true

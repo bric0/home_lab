@@ -1,4 +1,6 @@
+---
 - name: Setting up PVE
   hosts: pve_01
+  become: true
   roles:
     - pve

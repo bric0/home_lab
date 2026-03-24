@@ -1,0 +1,65 @@
+#!/usr/sbin/nft -f
+# Managed by Ansible - Firewall inter-VLAN rules
+
+flush ruleset
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        ct state established,related accept
+        iif lo accept
+        iifname "tailscale0" accept comment "VPN Tailscale"
+
+        tcp dport 22 accept comment "SSH"
+        icmp type echo-request accept comment "Ping"
+
+        # Accept traffic from VLANs to the gateway
+{% for vlan in firewall_vlans %}
+        iifname "eth0.{{ vlan.id }}" accept comment "VLAN {{ vlan.id }}"
+{% endfor %}
+
+        # Accept traffic from management interface
+        iifname "eth1" accept comment "Management"
+    }
+
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+
+        ct state established,related accept
+
+        # All VLANs -> DMZ (VLAN 10) for DNS (Pi-hole)
+        iifname "eth0.*" oifname "eth0.10" tcp dport 53 accept comment "DNS TCP to DMZ"
+        iifname "eth0.*" oifname "eth0.10" udp dport 53 accept comment "DNS UDP to DMZ"
+
+        # Admin VLAN (20) -> all VLANs
+        iifname "eth0.20" oifname "eth0.*" accept comment "Admin full access"
+
+        # VPN Tailscale -> all VLANs
+        iifname "tailscale0" accept comment "VPN full access"
+
+        # All VLANs -> internet via management interface
+        iifname "eth0.*" oifname "eth1" accept comment "Internet access"
+    }
+
+    chain output {
+        type filter hook output priority 0; policy accept;
+    }
+}
+
+table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority 100; policy accept;
+
+        oifname "eth1" masquerade comment "NAT to internet"
+    }
+
+    chain prerouting {
+        type nat hook prerouting priority -100; policy accept;
+{% for rule in firewall_dnat_rules %}
+
+        # {{ rule.comment }}
+        iifname "{{ rule.iif }}" {{ rule.proto }} dport {{ rule.dport }} dnat to {{ rule.dest }}
+{% endfor %}
+    }
+}

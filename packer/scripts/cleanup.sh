@@ -5,6 +5,9 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "==> Nettoyage final pour template"
 
+# Désactiver root login (n'était activé que pour le build Packer)
+sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+
 cloud-init clean --machine-id --logs --seed
 
 # Supprimer tous les artifacts cloud-init

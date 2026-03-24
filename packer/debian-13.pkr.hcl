@@ -16,14 +16,13 @@ source "proxmox-iso" "debian13" {
 
   vm_id                = var.vm_id
   vm_name              = var.vm_name
-  template_description = "debian_13_golden"
+  template_description = "Debian 13 golden image with cloud-init"
 
-
-  boot_iso  {
-    type = "scsi"
-    iso_file = "local:iso/debian-13.3.0-amd64-netinst.iso"
-    unmount = true
-    iso_checksum = "sha512:1ada40e4c938528dd8e6b9c88c19b978a0f8e2a6757b9cf634987012d37ec98503ebf3e05acbae9be4c0ec00b52e8852106de1bda93a2399d125facea45400f8"
+  boot_iso {
+    type         = "scsi"
+    iso_file     = var.iso_file
+    unmount      = true
+    iso_checksum = var.iso_checksum
   }
 
   memory    = 2048
@@ -31,13 +30,12 @@ source "proxmox-iso" "debian13" {
   sockets   = 1
   cpu_type  = "host"
   os        = "l26"
-  
+
   network_adapters {
     bridge = "vmbr1"
     model  = "virtio"
   }
 
-  # Disques
   disks {
     type         = "scsi"
     disk_size    = "10G"
@@ -53,7 +51,7 @@ source "proxmox-iso" "debian13" {
 
   # Boot
   boot_wait = "5s"
- 
+
   boot_command = [
     "<esc><wait>",
     "auto <wait>",
@@ -74,36 +72,34 @@ source "proxmox-iso" "debian13" {
     "<enter>"
   ]
 
-  http_directory = "http"
-  http_port_min  = 8001
-  http_port_max  = 8001
+  http_directory    = "http"
+  http_port_min     = 8001
+  http_port_max     = 8001
   http_bind_address = "0.0.0.0"
 
-  # SSH pour provisioning
-  ssh_username         = "root"
-  ssh_password         = var.ssh_password
-  ssh_host             = "127.0.0.1"
-  ssh_port             = 2222
-  ssh_timeout          = "20m"
+  # SSH for provisioning
+  ssh_username           = "root"
+  ssh_password           = var.ssh_password
+  ssh_host               = "127.0.0.1"
+  ssh_port               = 2222
+  ssh_timeout            = "20m"
   ssh_handshake_attempts = 20
 }
 
 build {
   sources = ["source.proxmox-iso.debian13"]
 
-  # Script de configuration
   provisioner "shell" {
     scripts = ["scripts/setup.sh"]
   }
 
-  # Script de nettoyage
   provisioner "shell" {
     script = "scripts/cleanup.sh"
   }
 
   post-processor "shell-local" {
     inline = [
-      "ssh root@152.228.222.18 'qm set ${var.vm_id} --template 1'"
+      "ssh root@${var.proxmox_host} 'qm set ${var.vm_id} --template 1'"
     ]
   }
 }

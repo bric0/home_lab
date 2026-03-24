@@ -1,0 +1,50 @@
+# Managed by Ansible
+# network interface settings for Proxmox VE
+#
+# Please do NOT modify this file directly on the host.
+# Modify the Ansible template instead.
+
+auto lo
+iface lo inet loopback
+
+auto {{ pve_public_interface }}
+iface {{ pve_public_interface }} inet manual
+
+auto {{ pve_vlan_interface }}
+iface {{ pve_vlan_interface }} inet manual
+
+auto vmbr0
+iface vmbr0 inet static
+	address {{ pve_public_ip }}
+	gateway {{ pve_public_gateway }}
+	bridge-ports {{ pve_public_interface }}
+	bridge-stp off
+	bridge-fd 0
+	hwaddress {{ pve_mac_address }}
+
+auto vmbr1
+iface vmbr1 inet static
+	address {{ pve_management_ip }}
+	bridge-ports none
+	bridge-stp off
+	bridge-fd 0
+	post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+	# SNAT
+	post-up iptables -t nat -A POSTROUTING -s '{{ pve_management_subnet }}' -o vmbr0 -j MASQUERADE
+	post-down iptables -t nat -D POSTROUTING -s '{{ pve_management_subnet }}' -o vmbr0 -j MASQUERADE
+{% for rule in pve_dnat_rules %}
+
+	# {{ rule.comment }}
+	post-up iptables -t nat -A PREROUTING -i vmbr0 -p {{ rule.proto }} --dport {{ rule.public_port }} -j DNAT --to-destination {{ rule.dest_ip }}:{{ rule.dest_port }}
+	post-down iptables -t nat -D PREROUTING -i vmbr0 -p {{ rule.proto }} --dport {{ rule.public_port }} -j DNAT --to-destination {{ rule.dest_ip }}:{{ rule.dest_port }}
+{% endfor %}
+
+auto vmbr2
+iface vmbr2 inet static
+	bridge-ports {{ pve_vlan_interface }}
+	bridge-stp off
+	bridge-fd 0
+	bridge-vlan-aware yes
+	bridge-vids {{ pve_vlan_ids | join(',') }}
+
+source /etc/network/interfaces.d/*

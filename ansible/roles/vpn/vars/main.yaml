@@ -1,6 +1,3 @@
-vpn_fqdn: vpn.bricoo.fr
-vpn_listen_addr: 0.0.0.0:8080
-vpn_acme_url: cloudflare?
-vpn_acme_challenge_type: DNS-01
-vpn_acme_email: bric0l@proton.me
-vpn_magicdns_fqdn: mc.bricoo.fr
+---
+# Override these values in host_vars or extra-vars as needed
+# Default values are in defaults/main.yaml

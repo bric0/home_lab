@@ -1,0 +1,24 @@
+---
+dns_servers:
+  - "1.1.1.1"
+  - "8.8.8.8"
+
+vlans:
+  dmz:
+    id: 10
+    subnet: "10.10.0.0/24"
+    gateway: "10.10.0.1"
+  admin:
+    id: 20
+    subnet: "10.20.0.0/24"
+    gateway: "10.20.0.1"
+  infra:
+    id: 30
+    subnet: "10.30.0.0/24"
+    gateway: "10.30.0.1"
+  prod:
+    id: 40
+    subnet: "10.40.0.0/16"
+    gateway: "10.40.0.1"
+
+management_subnet: "192.168.10.0/29"

@@ -1,0 +1,52 @@
+---
+- name: Setting up Pi-hole
+  block:
+    - name: Install Pi-hole dependencies
+      ansible.builtin.apt:
+        pkg:
+          - curl
+          - procps
+          - idn2
+          - sqlite3
+          - dns-root-data
+        update_cache: true
+
+    - name: Create pihole config directory
+      ansible.builtin.file:
+        path: /etc/pihole
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy Pi-hole setupVars.conf
+      ansible.builtin.template:
+        src: setupVars.conf.j2
+        dest: /etc/pihole/setupVars.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Download Pi-hole installer
+      ansible.builtin.get_url:
+        url: https://install.pi-hole.net
+        dest: /tmp/pihole-install.sh
+        mode: '0755'
+
+    - name: Run Pi-hole unattended install
+      ansible.builtin.command: bash /tmp/pihole-install.sh --unattended
+      args:
+        creates: /usr/local/bin/pihole
+
+    - name: Set Pi-hole web admin password
+      ansible.builtin.command: "pihole -a -p {{ pihole_web_password }}"
+      no_log: true
+      changed_when: true
+      when: pihole_web_password | length > 0
+
+    - name: Ensure pihole-FTL is running
+      ansible.builtin.systemd_service:
+        name: pihole-FTL
+        state: started
+        enabled: true
+  become: true
