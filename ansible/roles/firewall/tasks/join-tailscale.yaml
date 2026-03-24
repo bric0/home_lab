@@ -1,0 +1,21 @@
+- name: Setting up tailscale
+  block: 
+    - name: Update repository cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        force_apt_get: true
+
+    - name: Install tailscale
+      ansible.builtin.apt:
+        pkg:
+          - tailscale
+
+    - name: Join headscale tailnet 
+      ansible.builtin.command: >
+        tailscale up \
+          --login-server={{ headscale_url }} \
+          --authkey={{ tailscale_authkey }} \
+          --accept-routes \
+          --advertise-routes={{ advertised_routes | join(',') }} \
+          --hostname={{ inventory_hostname }}

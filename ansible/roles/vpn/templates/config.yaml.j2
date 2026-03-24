@@ -10,13 +10,13 @@
 #
 # https://myheadscale.example.com:443
 #
-server_url: https://hs.brico.bzh:443
+server_url: https://{{ vpn_fqdn }}:443
 
 # Address to listen to / bind to on the server
 #
 # For production:
 # listen_addr: 0.0.0.0:8080
-listen_addr: 0.0.0.0:8080
+listen_addr: {{ vpn_listen_addr }}
 
 # Address to listen to /metrics, you may want
 # to keep this endpoint private to your internal
@@ -199,14 +199,14 @@ database:
 # TLS for a domain with Let's Encrypt.
 #
 # URL to ACME directory
-acme_url: https://acme-v02.api.letsencrypt.org/directory
+acme_url: {{ vpn_acme_url }}
 
 # Email to register with ACME provider
-acme_email: "bric0l@proton.me"
+acme_email: {{ vpn_acme_email }} 
 #acme_email: ""
 
 # Domain name to request a TLS certificate for:
-tls_letsencrypt_hostname: "hs.brico.bzh"
+tls_letsencrypt_hostname: "{{ vpn_fqdn }}" 
 #tls_letsencrypt_hostname: ""
 
 # Path to store certificates and metadata needed by
@@ -217,7 +217,7 @@ tls_letsencrypt_cache_dir: /var/lib/headscale/cache
 # Type of ACME challenge to use, currently supported types:
 # HTTP-01 or TLS-ALPN-01
 # See: docs/ref/tls.md for more information
-tls_letsencrypt_challenge_type: HTTP-01
+tls_letsencrypt_challenge_type: {{ vpn_acme_challenge_type }}
 # When HTTP-01 challenge is chosen, letsencrypt must set up a
 # verification endpoint, and it will be listening on:
 # :http = port 80
@@ -274,7 +274,7 @@ dns:
   # `base_domain` must be a FQDN, without the trailing dot.
   # The FQDN of the hosts will be
   # `hostname.base_domain` (e.g., _myhost.example.com_).
-  base_domain: mc.brico.bzh
+  base_domain: {{ vpn_magicdns_fqdn }} 
 
   # List of DNS servers to expose to clients.
   nameservers:

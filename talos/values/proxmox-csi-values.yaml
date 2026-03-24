@@ -1,12 +1,13 @@
-# proxmox-csi.yaml
+createNamespace: true
 
 config:
   clusters:
     - url: https://192.168.10.1:8006/api2/json
       insecure: true 
       token_id: "kubernetes-csi@pve!csi"
-      token_secret: $PROXMOX_CSI_PLUGIN_TOKEN
-      region: home 
+      # token_secret: ${PROXMOX_CSI_PLUGIN_TOKEN}
+      token_secret: b93eb4d0-7968-4d7e-98ab-668103711b70 
+      region: homelab 
 
 # Deploy Node CSI driver only on proxmox nodes
 node:

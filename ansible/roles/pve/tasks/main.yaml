@@ -1,0 +1,15 @@
+- name: Setting up network interfaces
+  block: 
+    - name: Copy interfaces configuration
+      ansible.builtin.copy: 
+        src: interfaces
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: 644
+      register: network_config 
+
+    - name: Apply network configuration with ifreload
+      ansible.builtin.command: ifreload -a
+      when: network_config.changed
+

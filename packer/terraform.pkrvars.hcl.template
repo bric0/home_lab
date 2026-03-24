@@ -1,0 +1,16 @@
+# Connexion Proxmox
+proxmox_url      = "https://localhost:8006/api2/json"
+proxmox_username = "root"
+proxmox_password = "VOTRE-PASSWORD"
+proxmox_node     = "pve"
+
+# Sécurité
+insecure_skip_tls_verify = true
+
+# Configuration VM
+vm_id        = 9000
+vm_name      = "debian-12-cloudinit"
+storage_pool = "local-lvm"
+
+# SSH (utilisé pendant le build seulement)
+ssh_password = "packer"

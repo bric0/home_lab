@@ -25,9 +25,15 @@ Enfin, placer le token dans le fichier `talenv.yaml`.
 
 Pour installer la CSI de proxmox il lancer la commande suivante : 
 ```
-helm template proxmox-csi-plugin \
-    oci://ghcr.io/sergelogvinov/charts/proxmox-csi-plugin -n csi-proxmox \
+helm template proxmox-csi-plugin oci://ghcr.io/sergelogvinov/charts/proxmox-csi-plugin \
+    -n csi-proxmox \
     -f ./values/proxmox-csi-values.yaml > ./manifests/proxmox-csi.yaml
+```
+Il est censé avoir un pods du CSI sur chacun des noeuds plus un controller. 
+
+Pour générer la configuration : 
+```
+talhelper genconfig -c talconfig.yaml -s talsecret.sops.yaml -e talenv.sops.yaml
 ```
 
 Pour appliquer la configuration sur les noeuds Talos, il suffit de récupérer les IP dynamiques des machines créés puis d'appliquer cette configuration sur les machines : 

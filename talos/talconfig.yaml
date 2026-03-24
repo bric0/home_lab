@@ -3,7 +3,6 @@ clusterName: home
 talosVersion: v1.12.2
 kubernetesVersion: v1.35.0
 endpoint: https://10.40.0.105:6443
-domain: k8s.lan 
 additionalApiServerCertSans:
   - api.k8s.internal
 clusterPodNets:
@@ -17,6 +16,10 @@ patches:
     cluster: 
       discovery: 
         enabled: false
+  - |-
+    cluster:
+      extraManifests:
+        - "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml"
   - |-
     machine:
       time:
@@ -32,7 +35,7 @@ patches:
   - |-
     machine:
       nodeLabels: 
-        topology.kubernetes.io/region: home
+        topology.kubernetes.io/region: homelab
         topology.kubernetes.io/zone: ovh-pve-01
   - |-
     machine: 

@@ -1,7 +1,31 @@
 persistence:
   enabled: true
   storageClass: proxmox-data
-  size: 10Gi
+  size: 80Gi
+
+nextcloud:
+  host: nextcloud.k8s.lan
+  username: admin
+  password: changeme
+  trustedDomains:
+    - 10.40.0.200
+    - nextcloud.k8s.lan
+
+httpRoute:
+  enabled: true
+  apiVersion: gateway.networking.k8s.io/v1
+  parentRefs:
+    - name: cilium-gateway  # Le nom de ta Gateway
+  hostnames:
+    - nextcloud.k8s.lan
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+      - name: nextcloud  # Sera le nom du service créé par le chart
+        port: 8080
 
 # internalDatabase:
 #  enabled: false

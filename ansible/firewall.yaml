@@ -1,0 +1,7 @@
+- name: Setting up firewall 
+  hosts: homelab-firewall
+  tasks:
+    - name: Run specific setup tasks
+      include_role:
+        name: firewall
+        tasks_from: setup

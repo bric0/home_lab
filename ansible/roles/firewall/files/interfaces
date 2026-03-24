@@ -1,0 +1,29 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet manual
+    pre-up ip link set dev $IFACE up
+    post-down ip link set dev $IFACE down
+
+auto eth1
+iface eth1 inet static
+    address 192.168.10.2/29
+    gateway 192.168.10.1
+    dns-nameservers 1.1.1.1 8.8.8.8
+
+auto eth0.10
+iface eth0.10 inet static
+    address 10.10.0.1/24
+
+auto eth0.20
+iface eth0.20 inet static
+    address 10.20.0.1/24
+
+auto eth0.30
+iface eth0.30 inet static
+    address 10.30.0.1/24 
+
+auto eth0.40
+iface eth0.40 inet static
+    address 10.40.0.1/16

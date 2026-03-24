@@ -1,0 +1,37 @@
+---
+- name: Setup firewall configuration
+  block: 
+    - name: Copy nftables configuration
+      ansible.builtin.copy:
+        src: "{{ nftables_file_path }}"
+        dest: /etc/nftables.conf
+        owner: root
+        group: root
+        mode: 600
+        backup: yes
+
+    - name: Ensure nftables sercies is reloaded
+      ansible.builtin.service: 
+        name: "nftables.service"
+        state: "restarted"
+        enabled: true
+
+- name: Setting up systctl
+  block: 
+    - name: Copy sysctl conf
+      ansible.builtin.copy:
+        src: "{{ sysctl_file_path }}"
+        dest: /etc/systctl.conf
+        owner: root
+        group: root
+        mode: 644
+
+    - name: Apply systctl configuration
+      ansible.builtin.command: sysctl -p
+
+- name: Disable unattended upgrades
+  ansible.builtin.systemd_service:
+    name: unattended-upgrades
+    state: stopped
+    enabled: false
+  become: true

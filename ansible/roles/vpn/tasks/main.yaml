@@ -1,0 +1,27 @@
+- name: Setting up headscale
+  block:
+    - name: Download headscale debian package
+      ansible.builtin.command: >
+        wget --output-document=/tmp/headscale.deb \
+         "https://github.com/juanfont/headscale/releases/download/v{{ HEADSCALE_VERSION }}/headscale_{{ HEADSCALE_VERSION }}_linux_{{ HEADSCALE_ARCH }}.deb"
+
+    - name: Install headscale debian package
+      ansible.builtin.apt: 
+        deb: /tmp/headscale.deb
+      become: true
+
+    - name: Copy headscale configuration
+      ansible.builtin.template:
+        src: config.yaml.j2
+        dest: /etc/headscale/config.yaml
+        owner: headscale
+        group: headscale
+        mode: 644
+      become: true
+
+    - name: Enable and start headscale service
+      ansible.builtin.systemd_service:
+        name: headscale
+        status: started
+        enabled: true
+      become: true

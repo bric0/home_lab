@@ -30,3 +30,8 @@ variable "talos_image_name" {
   type        = string
   default     = ""
 }
+
+variable "vm_password" {
+  description = "Debian user password" 
+  type        = string
+}

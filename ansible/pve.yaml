@@ -1,0 +1,4 @@
+- name: Setting up PVE
+  hosts: pve_01
+  roles:
+    - pve
