@@ -19,10 +19,12 @@ source "proxmox-iso" "debian13" {
   template_description = "Debian 13 golden image with cloud-init"
 
   boot_iso {
-    type         = "scsi"
-    iso_file     = var.iso_file
-    unmount      = true
-    iso_checksum = var.iso_checksum
+    type             = "scsi"
+    iso_url          = var.iso_url
+    iso_checksum     = var.iso_checksum
+    iso_storage_pool = "local"
+    iso_download_pve = true
+    unmount          = true
   }
 
   memory    = 2048

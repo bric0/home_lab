@@ -11,3 +11,11 @@
         backup: true
       notify: Reload network
   become: true
+
+- name: Configure SSH for Packer reverse tunnels
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?GatewayPorts'
+    line: 'GatewayPorts clientspecified'
+  become: true
+  notify: Restart sshd
