@@ -31,7 +31,7 @@ firewall_dnat_rules:
     iif: "eth1"
     proto: tcp
     dport: 443
-    dest: "10.30.0.10:443"
+    dest: "10.30.0.10:8080"
 
 # sysctl overrides (firewall is a router)
 sysctl_settings:

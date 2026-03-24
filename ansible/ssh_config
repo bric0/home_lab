@@ -1,0 +1,6 @@
+Host *
+    StrictHostKeyChecking accept-new
+    UserKnownHostsFile ~/.ssh/known_hosts_homelab
+
+Host 10.10.0.* 10.20.0.* 10.30.0.* 10.40.0.*
+    ProxyJump brico@152.228.222.18:2222

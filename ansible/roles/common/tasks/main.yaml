@@ -27,7 +27,10 @@
         owner: root
         group: root
         mode: '0644'
-      notify: Apply sysctl
+
+    - name: Apply sysctl configuration
+      ansible.builtin.command: sysctl -p
+      changed_when: false
   become: true
 
 - name: Disable unattended upgrades
@@ -36,3 +39,4 @@
     state: stopped
     enabled: false
   become: true
+  ignore_errors: true

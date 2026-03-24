@@ -3,7 +3,7 @@ headscale_version: "0.28.0"
 headscale_arch: "amd64"
 
 vpn_fqdn: "vpn.bricoo.fr"
-vpn_listen_addr: "0.0.0.0:8080"
+vpn_listen_addr: "0.0.0.0:443"
 vpn_acme_url: "https://acme-v02.api.letsencrypt.org/directory"
 vpn_acme_challenge_type: "TLS-ALPN-01"
 vpn_acme_email: "bric0l@proton.me"
@@ -11,6 +11,6 @@ vpn_magicdns_fqdn: "mc.bricoo.fr"
 
 nftables_extra_rules:
   - 'tcp dport 443 accept comment "Headscale TLS"'
-  - 'tcp dport 8080 accept comment "Headscale HTTP"'
+  # - 'tcp dport 443 accept comment "Headscale HTTP"'
   - 'udp dport 3478 accept comment "STUN"'
   - 'tcp dport 50443 accept comment "Headscale gRPC"'

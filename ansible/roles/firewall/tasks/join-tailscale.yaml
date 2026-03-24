@@ -1,23 +1,24 @@
 ---
 - name: Setting up tailscale
   block:
-    - name: Update repository cache
-      ansible.builtin.apt:
-        update_cache: true
-        cache_valid_time: 3600
+    - name: Add Tailscale GPG key
+      ansible.builtin.shell: >
+        curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg
+        | tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+      args:
+        creates: /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+    - name: Add Tailscale repository
+      ansible.builtin.shell: >
+        curl -fsSL https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list
+        | tee /etc/apt/sources.list.d/tailscale.list
+      args:
+        creates: /etc/apt/sources.list.d/tailscale.list
 
     - name: Install tailscale
       ansible.builtin.apt:
         pkg:
           - tailscale
+        update_cache: true
 
-    - name: Join headscale tailnet
-      ansible.builtin.command: >
-        tailscale up
-          --login-server={{ headscale_url }}
-          --authkey={{ tailscale_authkey }}
-          --accept-routes
-          --advertise-routes={{ advertise_routes | join(',') }}
-          --hostname={{ inventory_hostname }}
-      changed_when: true
   become: true
