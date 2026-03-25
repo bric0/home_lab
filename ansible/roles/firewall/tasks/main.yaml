@@ -5,5 +5,8 @@
 - name: Deploy nftables rules
   ansible.builtin.import_tasks: nftables.yaml
 
+- name: Setup DHCP relay
+  ansible.builtin.import_tasks: dhcp-relay.yaml
+
 - name: Join Tailscale network
   ansible.builtin.import_tasks: join-tailscale.yaml

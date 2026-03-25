@@ -1,0 +1,38 @@
+---
+- name: Setting up AdGuard Home
+  block:
+    - name: Create AdGuard Home directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - "{{ adguard_data_dir }}/work"
+        - "{{ adguard_data_dir }}/conf"
+
+    - name: Deploy AdGuard Home configuration
+      ansible.builtin.template:
+        src: AdGuardHome.yaml.j2
+        dest: "{{ adguard_data_dir }}/conf/AdGuardHome.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart adguardhome
+
+    - name: Deploy docker-compose file
+      ansible.builtin.template:
+        src: docker-compose.yaml.j2
+        dest: "{{ adguard_data_dir }}/docker-compose.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart adguardhome
+
+    - name: Start AdGuard Home container
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: "{{ adguard_data_dir }}"
+      changed_when: false
+  become: true

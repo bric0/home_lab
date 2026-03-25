@@ -3,40 +3,59 @@
 # Usage: cd ansible && ansible-playbook bootstrap.yaml
 # Prerequisites: PVE configured (pve.yaml), VMs deployed (opentofu)
 
-#Step 1: Configure firewall (networking + nftables + install tailscale)
-- name: Setup firewall
-  hosts: homelab-firewall
-  become: true
-  roles:
-    - role: common
-      vars:
-        sysctl_settings:
-          net.ipv4.ip_forward: 1
-          net.ipv6.conf.all.disable_ipv6: 1
-          net.ipv6.conf.default.disable_ipv6: 1
-    - firewall
+# Step 1: Configure firewall (networking + nftables + install tailscale)
+# Uses temporary DNS (1.1.1.1) because AdGuard is not up yet
+# - name: Setup firewall
+#   hosts: homelab-firewall
+#   become: true
+#   vars:
+#     dns_servers:
+#       - "1.1.1.1"
+#   roles:
+#     - role: common
+#       vars:
+#         sysctl_settings:
+#           net.ipv4.ip_forward: 1
+#           net.ipv6.conf.all.disable_ipv6: 1
+#           net.ipv6.conf.default.disable_ipv6: 1
+#     - firewall
 
-# Step 2: Configure Pi-hole (DNS)
-- name: Setup Pi-hole
-  hosts: homelab-pihole
-  become: true
-  roles:
-    - common
-    - pihole
+# # Step 2: Configure AdGuard Home (DNS)
+# # Uses temporary DNS (1.1.1.1) for Docker install + image pull
+# - name: Setup AdGuard Home
+#   hosts: homelab-pihole
+#   become: true
+#   vars:
+#     dns_servers:
+#       - "1.1.1.1"
+#   roles:
+#     - common
+#     - adguard
 
-# Step 3: Configure VPN (Headscale)
-- name: Setup Headscale
-  hosts: homelab-vpn
-  become: true
-  roles:
-    - common
-    - vpn
+# # Step 2.5: Switch DNS to AdGuard (now running)
+# - name: Switch DNS to AdGuard
+#   hosts: homelab-firewall:homelab-pihole
+#   become: true
+#   tasks:
+#     - name: Deploy final DNS configuration
+#       ansible.builtin.include_role:
+#         name: common
+#         tasks_from: dns.yaml
+
+# # Step 3: Configure VPN (Headscale)
+# - name: Setup Headscale
+#   hosts: homelab-vpn
+#   become: true
+#   roles:
+#     - common
+#     - vpn
 
 # Step 4: Create headscale user + preauth key (runs on VPN VM)
 - name: Prepare headscale for firewall join
   hosts: homelab-vpn
   become: true
   tasks:
+    # Could be useless ?
     - name: Wait for headscale to be ready
       ansible.builtin.command: headscale version
       register: hs_ready
@@ -51,12 +70,18 @@
       failed_when: "user_create.rc != 0 and 'UNIQUE constraint' not in user_create.stderr"
 
     - name: Get firewall user ID
-      ansible.builtin.shell: headscale users list --output json | python3 -c "import sys,json; users=json.load(sys.stdin); print(next(u['id'] for u in users if u['name']=='homelab-firewall-01'))"
+      ansible.builtin.shell: |
+        headscale users list --output json \
+          | python3 -c "import sys,json; print(next(u['id'] for u in json.load(sys.stdin) if u['name']=='homelab-firewall-01'))"
       register: user_id_result
       changed_when: false
 
     - name: Create preauth key
-      ansible.builtin.command: "headscale preauthkeys create --user {{ user_id_result.stdout | trim }} --reusable --expiration 1h"
+      ansible.builtin.shell: |
+        headscale preauthkeys create \
+          --user {{ user_id_result.stdout | trim }} \
+          --reusable \
+          --expiration 1h
       register: preauth_result
       changed_when: true
 
@@ -78,5 +103,38 @@
       - "192.168.10.0/29"
   tasks:
     - name: Join headscale tailnet
-      ansible.builtin.command: "tailscale up --login-server={{ headscale_internal_url }} --authkey={{ hostvars['homelab-vpn']['firewall_preauth_key'] }} --accept-routes --advertise-routes={{ advertise_routes | join(',') }} --hostname=homelab-firewall-01"
+      ansible.builtin.shell: |
+        tailscale up \
+          --login-server={{ headscale_internal_url }} \
+          --authkey={{ hostvars['homelab-vpn']['firewall_preauth_key'] }} \
+          --accept-dns=false \
+          --accept-routes \
+          --advertise-routes={{ advertise_routes | join(',') }} \
+          --hostname=homelab-firewall-01
+      changed_when: true
+
+# Step 6: Approve advertised routes (runs on VPN VM)
+- name: Approve firewall routes
+  hosts: homelab-vpn
+  become: true
+  vars:
+    advertise_routes:
+      - "10.10.0.0/24"
+      - "10.20.0.0/24"
+      - "10.30.0.0/24"
+      - "10.40.0.0/16"
+      - "192.168.10.0/29"
+  tasks:
+    - name: Get firewall node ID
+      ansible.builtin.shell: |
+        headscale nodes list --output json \
+          | python3 -c "import sys,json; print(next(n['id'] for n in json.load(sys.stdin) if n['given_name']=='homelab-firewall-01'))"
+      register: node_id_result
+      changed_when: false
+
+    - name: Approve advertised routes
+      ansible.builtin.shell: |
+        headscale nodes approve-routes \
+          --identifier {{ node_id_result.stdout | trim }} \
+          --routes {{ advertise_routes | join(',') }}
       changed_when: true

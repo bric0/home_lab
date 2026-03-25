@@ -73,14 +73,14 @@ ansible-playbook -i inventory/ovh-pve-01/main.yaml vpn.yaml
 - Installe headscale, TLS-ALPN-01 via Let's Encrypt
 - Résultat : VPN accessible sur `vpn.bricoo.fr:443`
 
-## Étape 6 — Configurer Pi-hole
+## Étape 6 — Configurer AdGuard Home
 
 ```bash
-ansible-playbook -i inventory/ovh-pve-01/main.yaml pihole.yaml
+ansible-playbook -i inventory/ovh-pve-01/main.yaml adguard.yaml
 ```
 
 - Connexion : ProxyJump via firewall → 10.10.0.10
-- Installe Pi-hole, DNS pour tous les VLANs
+- Installe Docker + AdGuard Home (DNS) pour tous les VLANs
 
 ## Vérification
 
@@ -89,4 +89,4 @@ ansible-playbook -i inventory/ovh-pve-01/main.yaml pihole.yaml
 3. OpenTofu : `ssh brico@152.228.222.18 -p 2222`
 4. Firewall : `ssh -o ProxyJump=brico@152.228.222.18:2222 brico@10.30.0.10`
 5. VPN : `curl https://vpn.bricoo.fr`
-6. Pi-hole : `dig @10.10.0.10 google.com`
+6. AdGuard Home : `dig @10.10.0.10 google.com`

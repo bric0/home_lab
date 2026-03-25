@@ -1,0 +1,10 @@
+# Managed by Ansible
+services:
+  adguardhome:
+    image: adguard/adguardhome
+    container_name: adguardhome
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - {{ adguard_data_dir }}/work:/opt/adguardhome/work
+      - {{ adguard_data_dir }}/conf:/opt/adguardhome/conf

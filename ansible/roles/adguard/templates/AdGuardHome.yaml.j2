@@ -1,0 +1,56 @@
+# Managed by Ansible
+schema_version: 29
+http:
+  pprof:
+    port: 6060
+    enabled: false
+  address: 0.0.0.0:{{ adguard_web_port }}
+  session_ttl: 720h
+users: []
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: {{ adguard_dns_port }}
+  upstream_dns:
+{% for server in adguard_upstream_dns %}
+    - {{ server }}
+{% endfor %}
+  bootstrap_dns:
+{% for server in adguard_bootstrap_dns %}
+    - {{ server }}
+{% endfor %}
+  all_servers: false
+  cache_size: 4194304
+  cache_ttl_min: 0
+  cache_ttl_max: 0
+  enable_dnssec: false
+  edns_client_subnet:
+    enabled: false
+dhcp:
+  enabled: {{ adguard_dhcp_enabled | lower }}
+{% if adguard_dhcp_enabled %}
+  interface_name: "{{ adguard_dhcp_interface }}"
+  local_domain_name: "{{ adguard_dhcp_domain }}"
+  dhcpv4:
+    gateway_ip: "{{ adguard_dhcp_gateway }}"
+    subnet_mask: "{{ adguard_dhcp_subnet_mask }}"
+    range_start: "{{ adguard_dhcp_range_start }}"
+    range_end: "{{ adguard_dhcp_range_end }}"
+    lease_duration: {{ adguard_dhcp_lease_duration }}
+    icmp_timeout_msec: 1000
+    options: []
+  dhcpv6:
+    range_start: ""
+    lease_duration: 86400
+    ra_sldla_managed: false
+    ra_allow_slaac: false
+{% endif %}
+filtering:
+  enabled: true
+  url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+  name: AdGuard DNS filter
+  rewrites:
+{% for record in adguard_custom_dns %}
+    - domain: "{{ record.domain }}"
+      answer: "{{ record.answer }}"
+{% endfor %}

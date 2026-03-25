@@ -33,6 +33,12 @@ firewall_dnat_rules:
     dport: 443
     dest: "10.30.0.10:8080"
 
+# DHCP relay (forward DHCP from prod VLAN to AdGuard)
+dhcp_relay_server: "10.10.0.10"
+dhcp_relay_interfaces:
+  - "eth0.40"
+  - "eth0.10"
+
 # sysctl overrides (firewall is a router)
 sysctl_settings:
   net.ipv4.ip_forward: 1

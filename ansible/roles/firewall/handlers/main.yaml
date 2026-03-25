@@ -12,3 +12,10 @@
     state: restarted
     enabled: true
   become: true
+
+- name: Restart dhcp-relay
+  ansible.builtin.systemd_service:
+    name: isc-dhcp-relay
+    state: restarted
+    enabled: true
+  become: true

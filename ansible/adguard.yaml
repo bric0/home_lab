@@ -1,0 +1,7 @@
+---
+- name: Setting up AdGuard Home
+  hosts: homelab-pihole
+  become: true
+  roles:
+    - common
+    - adguard

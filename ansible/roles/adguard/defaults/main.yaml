@@ -1,0 +1,26 @@
+---
+adguard_upstream_dns:
+  - "1.1.1.1"
+  - "8.8.8.8"
+
+adguard_bootstrap_dns:
+  - "1.1.1.1"
+
+adguard_dns_port: 53
+adguard_web_port: 80
+
+adguard_data_dir: "/opt/adguardhome"
+
+adguard_custom_dns:
+  - domain: "vpn.bricoo.fr"
+    answer: "10.30.0.10"
+
+# DHCP server
+adguard_dhcp_enabled: true
+adguard_dhcp_interface: "eth0"
+adguard_dhcp_domain: "lan"
+adguard_dhcp_gateway: "10.40.0.1"
+adguard_dhcp_subnet_mask: "255.255.0.0"
+adguard_dhcp_range_start: "10.40.0.20"
+adguard_dhcp_range_end: "10.40.0.99"
+adguard_dhcp_lease_duration: 86400
