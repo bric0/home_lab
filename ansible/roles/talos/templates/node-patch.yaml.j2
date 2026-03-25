@@ -1,0 +1,15 @@
+machine:
+  network:
+    hostname: {{ node.hostname }}
+    interfaces:
+      - interface: eth0
+        addresses:
+          - {{ node.ip }}/{{ talos_node_cidr }}
+        routes:
+          - gateway: {{ talos_gateway }}
+{% if node.is_controlplane %}
+        vip:
+          ip: {{ talos_vip }}
+{% endif %}
+  install:
+    disk: {{ node.install_disk }}

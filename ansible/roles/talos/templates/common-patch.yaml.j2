@@ -1,0 +1,33 @@
+machine:
+  network:
+    nameservers:
+      - {{ talos_dns_server }}
+  time:
+    disabled: false
+    servers:
+      - {{ talos_ntp_server }}
+    bootTimeout: 2m0s
+  install:
+    image: {{ talos_install_image }}
+  nodeLabels:
+    topology.kubernetes.io/region: {{ talos_region }}
+    topology.kubernetes.io/zone: {{ talos_zone }}
+cluster:
+  discovery:
+    enabled: false
+  network:
+    cni:
+      name: none
+    podSubnets:
+      - {{ talos_pod_cidr }}
+    serviceSubnets:
+      - {{ talos_service_cidr }}
+  extraManifests:
+    - {{ talos_gateway_api_manifest }}
+  inlineManifests:
+    - name: cilium
+      contents: |
+{{ lookup('file', talos_machineconfigs_dir + '/cilium.yaml') | indent(8, true) }}
+    - name: proxmox-csi
+      contents: |
+{{ lookup('file', role_path + '/files/manifests/proxmox-csi.yaml') | indent(8, true) }}

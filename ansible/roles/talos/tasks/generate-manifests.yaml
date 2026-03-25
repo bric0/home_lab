@@ -1,0 +1,33 @@
+---
+- name: Create machineconfigs directory
+  ansible.builtin.file:
+    path: "{{ talos_machineconfigs_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Add Cilium Helm repository
+  ansible.builtin.command:
+    cmd: helm repo add cilium https://helm.cilium.io/
+  register: _helm_repo
+  changed_when: "'has been added' in _helm_repo.stdout"
+
+- name: Update Cilium Helm repository
+  ansible.builtin.command:
+    cmd: helm repo update cilium
+  changed_when: false
+
+- name: Generate Cilium manifest via Helm template
+  ansible.builtin.command:
+    cmd: >-
+      helm template cilium cilium/cilium
+      --version {{ talos_cilium_version }}
+      --namespace kube-system
+      -f {{ role_path }}/files/cilium-values.yaml
+  register: _cilium_manifest
+  changed_when: false
+
+- name: Write Cilium manifest
+  ansible.builtin.copy:
+    content: "{{ _cilium_manifest.stdout }}"
+    dest: "{{ talos_machineconfigs_dir }}/cilium.yaml"
+    mode: "0644"

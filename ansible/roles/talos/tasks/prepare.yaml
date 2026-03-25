@@ -1,0 +1,31 @@
+---
+- name: Create temp build directory
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: talos-build-
+  register: _talos_build_dir
+
+- name: Copy secrets file
+  ansible.builtin.copy:
+    src: "{{ talos_secrets_file }}"
+    dest: "{{ _talos_build_dir.path }}/secrets.yaml"
+    mode: "0600"
+  no_log: true
+
+- name: Template common patch
+  ansible.builtin.template:
+    src: common-patch.yaml.j2
+    dest: "{{ _talos_build_dir.path }}/common-patch.yaml"
+    mode: "0644"
+
+- name: Template controlplane patch
+  ansible.builtin.template:
+    src: controlplane-patch.yaml.j2
+    dest: "{{ _talos_build_dir.path }}/controlplane-patch.yaml"
+    mode: "0644"
+
+- name: Template worker patch
+  ansible.builtin.template:
+    src: worker-patch.yaml.j2
+    dest: "{{ _talos_build_dir.path }}/worker-patch.yaml"
+    mode: "0644"

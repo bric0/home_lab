@@ -1,0 +1,26 @@
+---
+- name: Generate Cilium manifest
+  ansible.builtin.include_tasks: generate-manifests.yaml
+
+- name: Generate Talos machineconfigs
+  block:
+    - name: Prepare patches and secrets
+      ansible.builtin.include_tasks: prepare.yaml
+
+    - name: Generate machineconfig for each node
+      ansible.builtin.include_tasks: generate-node.yaml
+      loop: "{{ talos_nodes }}"
+      loop_control:
+        loop_var: node
+        label: "{{ node.hostname }}"
+
+  always:
+    - name: Cleanup build directory
+      ansible.builtin.file:
+        path: "{{ _talos_build_dir.path }}"
+        state: absent
+      when: _talos_build_dir is defined and _talos_build_dir.path is defined
+
+- name: Apply Talos machineconfigs to nodes
+  ansible.builtin.include_tasks: apply.yaml
+  when: talos_apply | bool

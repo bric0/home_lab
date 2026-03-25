@@ -1,0 +1,48 @@
+---
+# Cluster identity
+talos_cluster_name: "home"
+talos_cluster_endpoint: "https://10.40.0.105:6443"
+talos_version: "v1.12.2"
+talos_kubernetes_version: "v1.35.0"
+
+# Output directory for generated machineconfigs
+talos_machineconfigs_dir: "{{ playbook_dir }}/machineconfigs"
+
+# Network
+talos_pod_cidr: "10.40.10.0/23"
+talos_service_cidr: "10.40.20.0/24"
+talos_gateway: "10.40.0.1"
+talos_node_cidr: "16"
+talos_dns_server: "10.40.0.1"
+talos_ntp_server: "time.cloudflare.com"
+talos_vip: "10.40.0.105"
+talos_region: "homelab"
+talos_zone: "ovh-pve-01"
+
+# Cilium
+talos_cilium_version: "1.18.6"
+
+# Install image
+talos_install_image: "factory.talos.dev/nocloud-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515:v1.12.6"
+
+# API server
+talos_api_server_sans: "api.k8s.internal"
+
+# Gateway API manifest
+talos_gateway_api_manifest: "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/standard-install.yaml"
+
+# Nodes
+talos_nodes:
+  - hostname: "talos-cp-01"
+    ip: "10.40.0.101"
+    is_controlplane: true
+    install_disk: "/dev/sda"
+  - hostname: "talos-worker-01"
+    ip: "10.40.0.111"
+    is_controlplane: false
+    install_disk: "/dev/sda"
+
+# Apply config
+talos_apply: true
+talos_apply_insecure: false
+talos_apply_mode: "auto"

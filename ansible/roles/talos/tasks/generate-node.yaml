@@ -1,0 +1,36 @@
+---
+- name: "Template node patch for {{ node.hostname }}"
+  ansible.builtin.template:
+    src: node-patch.yaml.j2
+    dest: "{{ _talos_build_dir.path }}/node-patch.yaml"
+    mode: "0644"
+
+- name: "Generate machineconfig for {{ node.hostname }}"
+  ansible.builtin.command:
+    cmd: >-
+      talosctl gen config
+      {{ talos_cluster_name }}
+      {{ talos_cluster_endpoint }}
+      --with-secrets {{ _talos_build_dir.path }}/secrets.yaml
+      --kubernetes-version {{ talos_kubernetes_version }}
+      --talos-version {{ talos_version }}
+      --additional-sans {{ talos_api_server_sans }}
+      --config-patch @{{ _talos_build_dir.path }}/common-patch.yaml
+      {{ '--config-patch-control-plane @' + _talos_build_dir.path + '/controlplane-patch.yaml'
+         if node.is_controlplane else
+         '--config-patch-worker @' + _talos_build_dir.path + '/worker-patch.yaml' }}
+      --config-patch @{{ _talos_build_dir.path }}/node-patch.yaml
+      --output-types {{ 'controlplane' if node.is_controlplane else 'worker' }}
+      --with-docs=false
+      --with-examples=false
+      --output {{ talos_machineconfigs_dir }}
+      --force
+  changed_when: true
+
+- name: "Rename machineconfig to {{ node.hostname }}.yaml"
+  ansible.builtin.command:
+    cmd: >-
+      mv
+      {{ talos_machineconfigs_dir }}/{{ 'controlplane' if node.is_controlplane else 'worker' }}.yaml
+      {{ talos_machineconfigs_dir }}/{{ node.hostname }}.yaml
+  changed_when: true

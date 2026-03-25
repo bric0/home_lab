@@ -1,0 +1,14 @@
+---
+- name: Apply machineconfig to each Talos node
+  ansible.builtin.command:
+    cmd: >-
+      talosctl apply-config
+      --file {{ talos_machineconfigs_dir }}/{{ item.hostname }}.yaml
+      --nodes {{ item.ip }}
+      {% if talos_apply_insecure %}--insecure{% endif %}
+      {% if not talos_apply_insecure %}--talosconfig {{ talos_machineconfigs_dir }}/talosconfig{% endif %}
+      --mode {{ talos_apply_mode }}
+  loop: "{{ talos_nodes }}"
+  loop_control:
+    label: "{{ item.hostname }} ({{ item.ip }})"
+  changed_when: true
