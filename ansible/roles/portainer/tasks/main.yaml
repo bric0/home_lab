@@ -1,0 +1,27 @@
+---
+- name: Check if this host is in portainer_nodes
+  ansible.builtin.set_fact:
+    _portainer_node_found: >-
+      {{ portainer_nodes | selectattr('ip', 'equalto', ansible_host) | list | length > 0 }}
+
+- name: Skip hosts not in portainer_nodes
+  ansible.builtin.meta: end_host
+  when: not _portainer_node_found | bool
+
+- name: Determine Portainer role for this host
+  ansible.builtin.set_fact:
+    _portainer_is_server: >-
+      {{ portainer_nodes
+         | selectattr('ip', 'equalto', ansible_host)
+         | map(attribute='host_portainer', default=false)
+         | first
+         | default(false)
+         | bool }}
+
+- name: Deploy Portainer Server
+  ansible.builtin.include_tasks: server.yaml
+  when: _portainer_is_server
+
+- name: Deploy Portainer Agent
+  ansible.builtin.include_tasks: agent.yaml
+  when: not _portainer_is_server

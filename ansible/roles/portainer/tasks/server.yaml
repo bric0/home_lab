@@ -1,0 +1,26 @@
+---
+- name: Setting up Portainer Server
+  block:
+    - name: Create Portainer Server data directory
+      ansible.builtin.file:
+        path: "{{ portainer_server_data_dir }}/data"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy Portainer Server docker-compose file
+      ansible.builtin.template:
+        src: docker-compose-server.yaml.j2
+        dest: "{{ portainer_server_data_dir }}/docker-compose.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart portainer server
+
+    - name: Start Portainer Server container
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: "{{ portainer_server_data_dir }}"
+      changed_when: false
+  become: true

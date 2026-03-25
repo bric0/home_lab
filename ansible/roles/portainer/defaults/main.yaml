@@ -1,0 +1,8 @@
+---
+portainer_server_image: "portainer/portainer-ce:latest"
+portainer_agent_image: "portainer/agent:latest"
+
+portainer_server_data_dir: "/opt/portainer-server"
+portainer_agent_data_dir: "/opt/portainer-agent"
+
+portainer_nodes: []

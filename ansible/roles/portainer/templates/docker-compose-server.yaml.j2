@@ -1,0 +1,10 @@
+# Managed by Ansible
+services:
+  portainer:
+    image: {{ portainer_server_image }}
+    container_name: portainer
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ portainer_server_data_dir }}/data:/data

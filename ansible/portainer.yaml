@@ -1,0 +1,7 @@
+---
+- name: Setting up Portainer
+  hosts: infra
+  become: true
+  roles:
+    - common
+    - portainer

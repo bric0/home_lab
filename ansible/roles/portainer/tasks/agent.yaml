@@ -1,0 +1,26 @@
+---
+- name: Setting up Portainer Agent
+  block:
+    - name: Create Portainer Agent data directory
+      ansible.builtin.file:
+        path: "{{ portainer_agent_data_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy Portainer Agent docker-compose file
+      ansible.builtin.template:
+        src: docker-compose-agent.yaml.j2
+        dest: "{{ portainer_agent_data_dir }}/docker-compose.yaml"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart portainer agent
+
+    - name: Start Portainer Agent container
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: "{{ portainer_agent_data_dir }}"
+      changed_when: false
+  become: true
