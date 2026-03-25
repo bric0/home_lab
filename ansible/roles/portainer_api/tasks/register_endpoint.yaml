@@ -1,0 +1,31 @@
+---
+# Called in a loop with endpoint_node variable
+# endpoint_node = { name: "homelab-adguard", ip: "10.10.0.10" }
+
+- name: "List existing endpoints"
+  ansible.builtin.uri:
+    url: "{{ portainer_api_url }}/endpoints"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ portainer_jwt }}"
+    validate_certs: "{{ portainer_api_validate_certs }}"
+  register: _portainer_endpoints
+
+- name: "Check if endpoint {{ endpoint_node.name }} exists"
+  ansible.builtin.set_fact:
+    _endpoint_exists: "{{ _portainer_endpoints.json | selectattr('Name', 'equalto', endpoint_node.name) | list | length > 0 }}"
+
+- name: "Register endpoint {{ endpoint_node.name }}"
+  ansible.builtin.uri:
+    url: "{{ portainer_api_url }}/endpoints"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ portainer_jwt }}"
+    body_format: form-urlencoded
+    body:
+      Name: "{{ endpoint_node.name }}"
+      EndpointCreationType: "2"
+      URL: "{{ endpoint_node.ip }}:9001"
+    validate_certs: "{{ portainer_api_validate_certs }}"
+    status_code: [200, 201]
+  when: not _endpoint_exists | bool

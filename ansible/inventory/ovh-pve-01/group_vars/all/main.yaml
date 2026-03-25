@@ -1,0 +1,3 @@
+---
+portainer_admin_user: "admin"
+portainer_admin_password: "changeme"

@@ -17,15 +17,29 @@ all:
         ansible_user: brico
         ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
 
-    infra:
+    vlan_dmz:
+      hosts:
+        homelab-adguard:
+          ansible_host: 10.10.0.10
+
+    vlan_admin:
+      hosts:
+        homelab-admin:
+          ansible_host: 10.20.0.10
+
+    vlan_infra:
       hosts:
         homelab-vpn:
           ansible_host: 10.30.0.10
-        homelab-pihole:
-          ansible_host: 10.10.0.10
-        homelab-admin:
-          ansible_host: 10.20.0.10
+        homelab-infra:
+          ansible_host: 10.30.0.20
+
+    docker_hosts:
+      children:
+        vlan_dmz:
+      hosts:
+        homelab-infra:
+          ansible_host: 10.30.0.20
       vars:
         ansible_user: brico
         ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
-

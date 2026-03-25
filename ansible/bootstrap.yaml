@@ -3,59 +3,148 @@
 # Usage: cd ansible && ansible-playbook bootstrap.yaml
 # Prerequisites: PVE configured (pve.yaml), VMs deployed (opentofu)
 
-# Step 1: Configure firewall (networking + nftables + install tailscale)
-# Uses temporary DNS (1.1.1.1) because AdGuard is not up yet
-# - name: Setup firewall
-#   hosts: homelab-firewall
-#   become: true
-#   vars:
-#     dns_servers:
-#       - "1.1.1.1"
-#   roles:
-#     - role: common
-#       vars:
-#         sysctl_settings:
-#           net.ipv4.ip_forward: 1
-#           net.ipv6.conf.all.disable_ipv6: 1
-#           net.ipv6.conf.default.disable_ipv6: 1
-#     - firewall
+# ============================================================
+# Phase 1: Network foundation (no DNS yet)
+# ============================================================
 
-# # Step 2: Configure AdGuard Home (DNS)
-# # Uses temporary DNS (1.1.1.1) for Docker install + image pull
-# - name: Setup AdGuard Home
-#   hosts: homelab-pihole
-#   become: true
-#   vars:
-#     dns_servers:
-#       - "1.1.1.1"
-#   roles:
-#     - common
-#     - adguard
+- name: "Phase 1: Setup firewall"
+  hosts: homelab-firewall
+  become: true
+  vars:
+    dns_servers:
+      - "1.1.1.1"
+  roles:
+    - role: common
+      vars:
+        sysctl_settings:
+          net.ipv4.ip_forward: 1
+          net.ipv6.conf.all.disable_ipv6: 1
+          net.ipv6.conf.default.disable_ipv6: 1
+    - firewall
 
-# # Step 2.5: Switch DNS to AdGuard (now running)
-# - name: Switch DNS to AdGuard
-#   hosts: homelab-firewall:homelab-pihole
-#   become: true
-#   tasks:
-#     - name: Deploy final DNS configuration
-#       ansible.builtin.include_role:
-#         name: common
-#         tasks_from: dns.yaml
+# ============================================================
+# Phase 2: Docker + Portainer on all Docker VMs
+# ============================================================
 
-# # Step 3: Configure VPN (Headscale)
-# - name: Setup Headscale
-#   hosts: homelab-vpn
-#   become: true
-#   roles:
-#     - common
-#     - vpn
+- name: "Phase 2.1: Install common + docker + portainer on all Docker hosts"
+  hosts: docker_hosts
+  become: true
+  vars:
+    dns_servers:
+      - "1.1.1.1"
+  roles:
+    - common
+    - portainer
 
-# Step 4: Create headscale user + preauth key (runs on VPN VM)
-- name: Prepare headscale for firewall join
+- name: "Phase 2.2: Wait for Portainer API to be ready"
+  hosts: homelab-infra
+  gather_facts: false
+  tasks:
+    - name: Wait for Portainer API to respond
+      ansible.builtin.uri:
+        url: "https://127.0.0.1:9443/api/status"
+        validate_certs: false
+        status_code: [200]
+      register: _portainer_status
+      retries: 12
+      delay: 5
+      until: _portainer_status.status == 200
+
+# ============================================================
+# Phase 3: Portainer API setup
+# ============================================================
+
+- name: "Phase 3: Initialize Portainer and register endpoints"
+  hosts: homelab-infra
+  gather_facts: false
+  tasks:
+    - name: Initialize Portainer admin account
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: init_admin.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Register agent endpoints
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: register_endpoint.yaml
+      vars:
+        endpoint_node: "{{ item }}"
+      loop: "{{ portainer_nodes }}"
+
+# ============================================================
+# Phase 4: Deploy AdGuard (config + Portainer stack)
+# ============================================================
+
+- name: "Phase 4.1: Deploy AdGuard config files to target host"
+  hosts: homelab-adguard
+  become: true
+  vars:
+    dns_servers:
+      - "1.1.1.1"
+  roles:
+    - adguard
+
+- name: "Phase 4.2: Deploy AdGuard stack via Portainer API"
+  hosts: homelab-infra
+  gather_facts: false
+  tasks:
+    - name: Load adguard defaults
+      ansible.builtin.include_vars:
+        file: roles/adguard/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render AdGuard docker-compose content
+      ansible.builtin.set_fact:
+        _adguard_compose: "{{ lookup('template', 'roles/adguard/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy AdGuard stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "adguard"
+          endpoint_name: "homelab-adguard"
+          compose_content: "{{ _adguard_compose }}"
+
+# ============================================================
+# Phase 5: Switch DNS to AdGuard
+# ============================================================
+
+- name: "Phase 5: Switch all hosts to AdGuard DNS"
+  hosts: homelab-firewall:docker_hosts
+  become: true
+  tasks:
+    - name: Deploy final DNS configuration
+      ansible.builtin.include_role:
+        name: common
+        tasks_from: dns.yaml
+
+# ============================================================
+# Phase 6: VPN (Headscale - systemd, unchanged)
+# ============================================================
+
+- name: "Phase 6.1: Setup Headscale"
+  hosts: homelab-vpn
+  become: true
+  roles:
+    - common
+    - vpn
+
+# Step 6.2: Create headscale user + preauth key (runs on VPN VM)
+- name: "Phase 6.2: Prepare headscale for firewall join"
   hosts: homelab-vpn
   become: true
   tasks:
-    # Could be useless ?
     - name: Wait for headscale to be ready
       ansible.builtin.command: headscale version
       register: hs_ready
@@ -89,8 +178,8 @@
       ansible.builtin.set_fact:
         firewall_preauth_key: "{{ preauth_result.stdout | trim }}"
 
-# Step 5: Join firewall to tailnet (runs on firewall)
-- name: Join firewall to Headscale tailnet
+# Step 6.3: Join firewall to tailnet (runs on firewall)
+- name: "Phase 6.3: Join firewall to Headscale tailnet"
   hosts: homelab-firewall
   become: true
   vars:
@@ -113,8 +202,8 @@
           --hostname=homelab-firewall-01
       changed_when: true
 
-# Step 6: Approve advertised routes (runs on VPN VM)
-- name: Approve firewall routes
+# Step 6.4: Approve advertised routes (runs on VPN VM)
+- name: "Phase 6.4: Approve firewall routes"
   hosts: homelab-vpn
   become: true
   vars:

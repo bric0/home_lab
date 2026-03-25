@@ -1,0 +1,16 @@
+---
+- name: Authenticate to Portainer API
+  ansible.builtin.uri:
+    url: "{{ portainer_api_url }}/auth"
+    method: POST
+    body_format: json
+    body:
+      Username: "{{ portainer_admin_user }}"
+      Password: "{{ portainer_admin_password }}"
+    validate_certs: "{{ portainer_api_validate_certs }}"
+    status_code: [200]
+  register: _portainer_auth
+
+- name: Store JWT token
+  ansible.builtin.set_fact:
+    portainer_jwt: "{{ _portainer_auth.json.jwt }}"

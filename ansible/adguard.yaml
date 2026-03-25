@@ -1,7 +1,33 @@
 ---
-- name: Setting up AdGuard Home
-  hosts: homelab-pihole
+- name: Deploy AdGuard Home configuration
+  hosts: homelab-adguard
   become: true
   roles:
-    - common
     - adguard
+
+- name: Update AdGuard stack via Portainer
+  hosts: homelab-infra
+  gather_facts: false
+  tasks:
+    - name: Load adguard defaults
+      ansible.builtin.include_vars:
+        file: roles/adguard/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render AdGuard docker-compose content
+      ansible.builtin.set_fact:
+        _adguard_compose: "{{ lookup('template', 'roles/adguard/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy AdGuard stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "adguard"
+          endpoint_name: "homelab-adguard"
+          compose_content: "{{ _adguard_compose }}"

@@ -24,4 +24,3 @@
 
 - name: Deploy Portainer Agent
   ansible.builtin.include_tasks: agent.yaml
-  when: not _portainer_is_server

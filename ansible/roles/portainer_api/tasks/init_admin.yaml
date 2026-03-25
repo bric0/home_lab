@@ -1,0 +1,20 @@
+---
+- name: Check if Portainer admin already initialized
+  ansible.builtin.uri:
+    url: "{{ portainer_api_url }}/users/admin/check"
+    method: GET
+    validate_certs: "{{ portainer_api_validate_certs }}"
+    status_code: [200, 404]
+  register: _portainer_admin_check
+
+- name: Initialize Portainer admin account
+  ansible.builtin.uri:
+    url: "{{ portainer_api_url }}/users/admin/init"
+    method: POST
+    body_format: json
+    body:
+      Username: "{{ portainer_admin_user }}"
+      Password: "{{ portainer_admin_password }}"
+    validate_certs: "{{ portainer_api_validate_certs }}"
+    status_code: [200]
+  when: _portainer_admin_check.status == 404

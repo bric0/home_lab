@@ -19,20 +19,4 @@
         owner: root
         group: root
         mode: '0644'
-      notify: Restart adguardhome
-
-    - name: Deploy docker-compose file
-      ansible.builtin.template:
-        src: docker-compose.yaml.j2
-        dest: "{{ adguard_data_dir }}/docker-compose.yaml"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: Restart adguardhome
-
-    - name: Start AdGuard Home container
-      ansible.builtin.command:
-        cmd: docker compose up -d
-        chdir: "{{ adguard_data_dir }}"
-      changed_when: false
   become: true
