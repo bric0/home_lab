@@ -108,3 +108,9 @@ variable "ssh_keys" {
   description = "Liste des clés SSH publiques"
   default     = []
 }
+
+variable "vm_tags" {
+  description = "VM tags"
+  type        = list(string)
+  default     = []
+}

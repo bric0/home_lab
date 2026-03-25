@@ -86,4 +86,6 @@ resource "proxmox_virtual_environment_vm" "debian_clone" {
       servers = ["1.1.1.1", "8.8.8.8"]
     }
   }
+
+  tags = var.vm_tags
 }
