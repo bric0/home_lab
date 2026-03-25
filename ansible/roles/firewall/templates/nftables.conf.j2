@@ -28,6 +28,9 @@ table inet filter {
 
         ct state established,related accept
 
+        # Allow DNATed traffic to reach its destination
+        ct status dnat accept comment "DNATed traffic"
+
         # All VLANs -> DMZ (VLAN 10) for DNS (Pi-hole)
         iifname "eth0.*" oifname "eth0.10" tcp dport 53 accept comment "DNS TCP to DMZ"
         iifname "eth0.*" oifname "eth0.10" udp dport 53 accept comment "DNS UDP to DMZ"

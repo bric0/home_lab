@@ -2,7 +2,7 @@
 # Management network
 firewall_management_ip: "192.168.10.2/29"
 firewall_management_gateway: "192.168.10.1"
-firewall_dns_servers: "1.1.1.1 8.8.8.8"
+firewall_dns_servers: "10.10.0.10"
 
 # VLAN interfaces
 firewall_vlans:

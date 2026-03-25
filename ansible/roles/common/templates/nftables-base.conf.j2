@@ -1,29 +1,4 @@
 #!/usr/sbin/nft -f
 # Managed by Ansible
 
-flush ruleset
-
-table inet filter {
-    chain input {
-        type filter hook input priority 0; policy drop;
-
-        ct state established,related accept
-        iif lo accept
-
-        tcp dport 22 accept comment "SSH"
-        icmp type echo-request accept comment "Ping"
-        ip6 nexthdr icmpv6 accept comment "ICMPv6"
-
-{% for rule in nftables_extra_rules %}
-        {{ rule }}
-{% endfor %}
-    }
-
-    chain forward {
-        type filter hook forward priority 0; policy drop;
-    }
-
-    chain output {
-        type filter hook output priority 0; policy accept;
-    }
-}
+flush ruleset   

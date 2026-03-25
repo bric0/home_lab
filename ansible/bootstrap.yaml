@@ -16,21 +16,21 @@
           net.ipv6.conf.default.disable_ipv6: 1
     - firewall
 
-# Step 2: Configure VPN (Headscale)
-- name: Setup Headscale
-  hosts: homelab-vpn
-  become: true
-  roles:
-    - common
-    - vpn
-
-# Step 3: Configure Pi-hole
+# Step 2: Configure Pi-hole (DNS)
 - name: Setup Pi-hole
   hosts: homelab-pihole
   become: true
   roles:
     - common
     - pihole
+
+# Step 3: Configure VPN (Headscale)
+- name: Setup Headscale
+  hosts: homelab-vpn
+  become: true
+  roles:
+    - common
+    - vpn
 
 # Step 4: Create headscale user + preauth key (runs on VPN VM)
 - name: Prepare headscale for firewall join
@@ -69,7 +69,7 @@
   hosts: homelab-firewall
   become: true
   vars:
-    headscale_internal_url: "https://10.30.0.10:8080"
+    headscale_internal_url: "https://vpn.bricoo.fr:8080"
     advertise_routes:
       - "10.10.0.0/24"
       - "10.20.0.0/24"
