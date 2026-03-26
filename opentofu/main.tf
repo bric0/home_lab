@@ -137,7 +137,7 @@ module "homelab_prod_01" {
   memory_size = 4096
   disk_size   = 20
 
-  vm_ip       = "10.40.0.20/16"
+  vm_ip       = "10.40.0.10/16"
   vm_gateway  = "10.40.0.1"
   vlan_id     = 40
   vm_password = var.vm_password
