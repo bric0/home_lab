@@ -1,13 +1,20 @@
 resource "proxmox_virtual_environment_vm" "debian_clone" {
-  name        = var.node_name 
+  name        = var.node_name
   description = "Debian created with OpenTofu"
   node_name   = var.pve_node
+
+  timeout_create      = 600
+  timeout_clone       = 600
+  timeout_start_vm    = 600
+  timeout_shutdown_vm = 300
 
   # Clone depuis template
   clone {
     vm_id = var.template_id
     full  = true
   }
+
+  scsi_hardware = "virtio-scsi-single"
 
   # Agent
   agent {
