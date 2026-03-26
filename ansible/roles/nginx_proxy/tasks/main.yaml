@@ -1,0 +1,50 @@
+---
+- name: Setting up Nginx reverse proxy
+  block:
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - "{{ nginx_proxy_data_dir }}"
+        - "{{ nginx_proxy_data_dir }}/certs"
+
+    - name: Deploy nginx.conf
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: "{{ nginx_proxy_data_dir }}/nginx.conf"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Deploy Cloudflare credentials
+      ansible.builtin.template:
+        src: cloudflare.ini.j2
+        dest: "{{ nginx_proxy_data_dir }}/cloudflare.ini"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Check if certificate already exists
+      ansible.builtin.stat:
+        path: "{{ nginx_proxy_data_dir }}/certs/live/portainer.bricoo.fr/fullchain.pem"
+      register: _cert_file
+
+    - name: Obtain Let's Encrypt certificate via DNS-01
+      ansible.builtin.command:
+        cmd: >
+          docker run --rm
+          -v {{ nginx_proxy_data_dir }}/certs:/etc/letsencrypt
+          -v {{ nginx_proxy_data_dir }}/cloudflare.ini:/etc/cloudflare.ini:ro
+          certbot/dns-cloudflare certonly
+          --dns-cloudflare
+          --dns-cloudflare-credentials /etc/cloudflare.ini
+          -d portainer.bricoo.fr
+          --email {{ nginx_proxy_acme_email }}
+          --agree-tos --non-interactive
+      when: not _cert_file.stat.exists
+
+  become: true

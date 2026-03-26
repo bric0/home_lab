@@ -39,6 +39,11 @@ table inet filter {
         iifname "eth0.40" oifname "eth0.10" udp dport 67 accept comment "DHCP relay to AdGuard"
         iifname "eth0.10" oifname "eth0.40" udp dport 68 accept comment "DHCP relay response"
 
+        # DMZ -> INFRA for reverse proxy to Portainer
+        iifname "eth0.10" oifname "eth0.30" tcp dport 9443 accept comment "Reverse proxy to Portainer"
+        # DMZ -> INFRA for VPN passthrough to Headscale
+        iifname "eth0.10" oifname "eth0.30" tcp dport 8080 accept comment "VPN passthrough to Headscale"
+
         # Admin VLAN (20) -> all VLANs
         iifname "eth0.20" oifname "eth0.*" accept comment "Admin full access"
 

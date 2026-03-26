@@ -1,0 +1,3 @@
+---
+nginx_proxy_data_dir: "/opt/nginx-proxy"
+nginx_proxy_acme_email: "bric0l@proton.me"

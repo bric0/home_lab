@@ -27,11 +27,11 @@ advertise_routes:
 
 # nftables DNAT rules on the firewall
 firewall_dnat_rules:
-  - comment: "Forward VPN traffic to headscale"
+  - comment: "Forward HTTPS traffic to DMZ reverse proxy"
     iif: "eth1"
     proto: tcp
     dport: 443
-    dest: "10.30.0.10:8080"
+    dest: "10.10.0.10:443"
 
 # DHCP relay (forward DHCP from prod VLAN to AdGuard)
 dhcp_relay_server: "10.10.0.10"

@@ -1,6 +1,6 @@
 ---
 - name: Setting up firewall
-  hosts: homelab-firewall
+  hosts: homelab-firewall-01
   become: true
   roles:
     - role: common

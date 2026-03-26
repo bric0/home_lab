@@ -10,7 +10,7 @@ all:
 
     firewall:
       hosts:
-        homelab-firewall:
+        homelab-firewall-01:
           ansible_host: 152.228.222.18
           ansible_port: 2222
       vars:
@@ -19,26 +19,43 @@ all:
 
     vlan_dmz:
       hosts:
-        homelab-adguard:
+        homelab-dmz-01:
           ansible_host: 10.10.0.10
 
     vlan_admin:
       hosts:
-        homelab-admin:
+        homelab-admin-01:
           ansible_host: 10.20.0.10
+      vars:
+        ansible_user: brico
+        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
 
     vlan_infra:
       hosts:
-        homelab-vpn:
+        homelab-vpn-01:
           ansible_host: 10.30.0.10
-        homelab-infra:
+        homelab-infra-01:
           ansible_host: 10.30.0.20
+      vars:
+        ansible_user: brico
+        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
+
+    vlan_prod:
+      hosts:
+        homelab-prod-01:
+          ansible_host: 10.40.0.10
+        homelab-prod-02:
+          ansible_host: 10.40.0.20
+      vars:
+        ansible_user: brico
+        ansible_ssh_private_key_file: ~/.ssh/ovh-homelab
 
     docker_hosts:
       children:
         vlan_dmz:
+        vlan_prod:
       hosts:
-        homelab-infra:
+        homelab-infra-01:
           ansible_host: 10.30.0.20
       vars:
         ansible_user: brico

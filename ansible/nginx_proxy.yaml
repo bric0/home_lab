@@ -1,33 +1,33 @@
 ---
-- name: Deploy AdGuard Home configuration
+- name: Deploy Nginx reverse proxy configuration
   hosts: homelab-dmz-01
   become: true
   roles:
-    - adguard
+    - nginx_proxy
 
-- name: Update AdGuard stack via Portainer
+- name: Deploy Nginx stack via Portainer
   hosts: homelab-infra-01
   gather_facts: false
   tasks:
-    - name: Load adguard defaults
+    - name: Load nginx_proxy defaults
       ansible.builtin.include_vars:
-        file: roles/adguard/defaults/main.yaml
+        file: roles/nginx_proxy/defaults/main.yaml
 
     - name: Authenticate to Portainer API
       ansible.builtin.include_role:
         name: portainer_api
         tasks_from: authenticate.yaml
 
-    - name: Render AdGuard docker-compose content
+    - name: Render Nginx docker-compose content
       ansible.builtin.set_fact:
-        _adguard_compose: "{{ lookup('template', 'roles/adguard/templates/docker-compose.yaml.j2') }}"
+        _nginx_compose: "{{ lookup('template', 'roles/nginx_proxy/templates/docker-compose.yaml.j2') }}"
 
-    - name: Deploy AdGuard stack
+    - name: Deploy Nginx stack
       ansible.builtin.include_role:
         name: portainer_api
         tasks_from: deploy_stack.yaml
       vars:
         stack:
-          name: "adguard"
+          name: "nginx-proxy"
           endpoint_name: "homelab-dmz-01"
-          compose_content: "{{ _adguard_compose }}"
+          compose_content: "{{ _nginx_compose }}"

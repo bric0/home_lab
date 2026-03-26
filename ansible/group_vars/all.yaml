@@ -26,8 +26,12 @@ management_subnet: "192.168.10.0/29"
 portainer_server_ip: "10.30.0.20"
 
 portainer_nodes:
-  - name: "homelab-infra"
+  - name: "homelab-infra-01"
     ip: "10.30.0.20"
     host_portainer: true
-  - name: "homelab-adguard"
+  - name: "homelab-dmz-01"
     ip: "10.10.0.10"
+  - name: "homelab-prod-01"
+    ip: "10.40.0.10"
+  - name: "homelab-prod-02"
+    ip: "10.40.0.20"

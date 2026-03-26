@@ -1,6 +1,6 @@
 ---
 - name: Setting up VPN (Headscale)
-  hosts: homelab-vpn
+  hosts: homelab-vpn-01
   become: true
   roles:
     - common

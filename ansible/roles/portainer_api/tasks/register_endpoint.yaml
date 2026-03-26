@@ -26,6 +26,8 @@
       Name: "{{ endpoint_node.name }}"
       EndpointCreationType: "2"
       URL: "{{ endpoint_node.ip }}:9001"
+      TLSSkipVerify: "true"
+      TLSSkipClientVerify: "true"
     validate_certs: "{{ portainer_api_validate_certs }}"
     status_code: [200, 201]
   when: not _endpoint_exists | bool
