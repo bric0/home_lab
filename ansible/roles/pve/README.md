@@ -32,6 +32,16 @@ pve_dnat_rules:
     dest_port: 22
 ```
 
+## ZFS Pool
+
+| Variable              | Default          | Description                 |
+| --------------------- | ---------------- | --------------------------- |
+| `pve_zfs_pool_name`   | `data`           | Nom du pool ZFS             |
+| `pve_zfs_compression` | `lz4`            | Algorithme de compression   |
+| `pve_zfs_atime`       | `off`            | Access time tracking        |
+| `pve_zfs_autotrim`    | `on`             | TRIM automatique (SSD/NVMe) |
+| `pve_zfs_content`     | `images,rootdir` | Types de contenu PVE        |
+
 ## Bridges
 
 | Bridge | Role       | Config                                               |

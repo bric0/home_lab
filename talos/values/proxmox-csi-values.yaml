@@ -25,7 +25,7 @@ tolerations:
 # See https://pve.proxmox.com/wiki/Storage
 storageClass:
   - name: proxmox-data
-    storage: local-lvm # Bien mettre le nom de la méthode de stockage utilisait sur Proxmox (voir Datacenter > Storage)
+    storage: data # Nom du stockage ZFS sur Proxmox (voir Datacenter > Storage)
     reclaimPolicy: Delete
     fstype: ext4
     cache: writethrough

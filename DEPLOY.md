@@ -23,6 +23,7 @@ ansible-playbook -i inventory/ovh-pve-01/main.yaml pve.yaml
 ```
 
 - Connexion : SSH direct `root@152.228.222.18:22`
+- Configure le pool ZFS `data` (compression lz4, atime off, autotrim) et l'enregistre dans PVE
 - Déploie les interfaces (vmbr0/1/2, DNAT, VLANs), active GatewayPorts
 - Résultat : port 2222 → firewall:22, port 443 → firewall:443
 

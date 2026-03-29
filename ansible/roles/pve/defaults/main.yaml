@@ -25,3 +25,10 @@ pve_dnat_rules:
     public_port: 2222
     dest_ip: "192.168.10.2"
     dest_port: 22
+
+# ZFS pool configuration
+pve_zfs_pool_name: "data"
+pve_zfs_compression: "lz4"
+pve_zfs_atime: "off"
+pve_zfs_autotrim: "on"
+pve_zfs_content: "images,rootdir"

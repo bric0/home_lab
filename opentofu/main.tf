@@ -11,7 +11,7 @@ module "homelab_firewall" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 10
 
   vm_ip       = "10.10.0.1/24"
   vm_password = var.vm_password
@@ -39,7 +39,7 @@ module "homelab_dmz_01" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 15
 
   vm_ip       = "10.10.0.10/24"
   vm_gateway  = "10.10.0.1"
@@ -63,7 +63,7 @@ module "homelab_admin_01" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 10
 
   vm_ip       = "10.20.0.10/24"
   vm_gateway  = "10.20.0.1"
@@ -87,7 +87,7 @@ module "homelab_vpn_01" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 10
 
   vm_ip       = "10.30.0.10/24"
   vm_gateway  = "10.30.0.1"
@@ -111,7 +111,7 @@ module "homelab_infra_01" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 50
 
   vm_ip       = "10.30.0.20/24"
   vm_gateway  = "10.30.0.1"
@@ -135,7 +135,7 @@ module "homelab_prod_01" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 100
 
   vm_ip       = "10.40.0.10/16"
   vm_gateway  = "10.40.0.1"
@@ -159,7 +159,7 @@ module "homelab_prod_02" {
   template_id = 9000
   cpu_number  = 2
   memory_size = 4096
-  disk_size   = 20
+  disk_size   = 10
 
   vm_ip       = "10.40.0.20/16"
   vm_gateway  = "10.40.0.1"

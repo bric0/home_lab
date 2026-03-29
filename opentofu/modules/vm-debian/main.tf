@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_vm" "debian_clone" {
 
   # Disque
   disk {
-    datastore_id = "local-lvm"
+    datastore_id = "data"
     interface    = "scsi0"
     size         = var.disk_size
     discard      = "on"
@@ -64,7 +64,7 @@ resource "proxmox_virtual_environment_vm" "debian_clone" {
   initialization {
     interface = "ide0"
 
-    datastore_id = "local-lvm"
+    datastore_id = "data"
 
     user_account {
       username = var.vm_username

@@ -1,4 +1,34 @@
 ---
+- name: Bootstrap ZFS pool
+  block:
+    - name: Set ZFS compression
+      ansible.builtin.command:
+        cmd: "zfs set compression={{ pve_zfs_compression }} {{ pve_zfs_pool_name }}"
+      changed_when: false
+
+    - name: Set ZFS atime
+      ansible.builtin.command:
+        cmd: "zfs set atime={{ pve_zfs_atime }} {{ pve_zfs_pool_name }}"
+      changed_when: false
+
+    - name: Set ZFS autotrim
+      ansible.builtin.command:
+        cmd: "zpool set autotrim={{ pve_zfs_autotrim }} {{ pve_zfs_pool_name }}"
+      changed_when: false
+
+    - name: Check if ZFS pool is registered in PVE storage
+      ansible.builtin.command:
+        cmd: "pvesm status --storage {{ pve_zfs_pool_name }}"
+      register: pvesm_check
+      changed_when: false
+      failed_when: false
+
+    - name: Add ZFS pool to PVE storage
+      ansible.builtin.command:
+        cmd: "pvesm add zfspool {{ pve_zfs_pool_name }} --pool {{ pve_zfs_pool_name }} --content {{ pve_zfs_content }}"
+      when: pvesm_check.rc != 0
+  become: true
+
 - name: Setting up network interfaces
   block:
     - name: Deploy interfaces configuration

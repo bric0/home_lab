@@ -63,7 +63,7 @@ reclaimPolicy: Delete
 parameters:
   cache: writethrough
   csi.storage.k8s.io/fstype: ext4
-  storage: local-lvm
+  storage: data
 ---
 # Source: proxmox-csi-plugin/templates/controller-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
