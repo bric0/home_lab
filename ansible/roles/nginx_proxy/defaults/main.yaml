@@ -11,3 +11,4 @@ nginx_proxy_certificates:
   - "files.bricoo.fr"
   - "pwd.bricoo.fr"
   - "adguard.bricoo.fr"
+  - "pve-01.bricoo.fr"

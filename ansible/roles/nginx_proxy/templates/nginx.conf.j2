@@ -11,6 +11,7 @@ stream {
         files.bricoo.fr   local_https;
         pwd.bricoo.fr        local_https;
         adguard.bricoo.fr    local_https;
+        pve-01.bricoo.fr     local_https;
         default              local_https;
     }
 
@@ -104,6 +105,27 @@ http {
 
         location / {
             proxy_pass http://10.40.0.10:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
+    }
+
+    server {
+        listen 8443 ssl;
+        server_name pve-01.bricoo.fr;
+
+        ssl_certificate /etc/nginx/certs/live/pve-01.bricoo.fr/fullchain.pem;
+        ssl_certificate_key /etc/nginx/certs/live/pve-01.bricoo.fr/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+
+        location / {
+            proxy_pass https://192.168.10.1:8006;
+            proxy_ssl_verify off;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

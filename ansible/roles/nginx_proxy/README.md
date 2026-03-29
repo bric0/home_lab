@@ -22,6 +22,7 @@ Port 443 (stream/L4 - SNI routing)
 Port 8443 (http/L7 - TLS termination)
   |
   |-- portainer.bricoo.fr -> https://10.30.0.20:9443 (Portainer)
+  |-- pve-01.bricoo.fr    -> https://192.168.10.1:8006 (Proxmox VE)
 ```
 
 ## Taches
