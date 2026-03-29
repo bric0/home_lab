@@ -217,7 +217,7 @@
   hosts: homelab-firewall-01
   become: true
   vars:
-    headscale_internal_url: "https://vpn.bricoo.fr:8080"
+    headscale_internal_url: "https://vpn.bricoo.fr"
     advertise_routes:
       - "10.10.0.0/24"
       - "10.20.0.0/24"
