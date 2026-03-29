@@ -4,3 +4,7 @@ nginx_proxy_certbot_version: "5.4.0"
 
 nginx_proxy_data_dir: "/opt/nginx-proxy"
 nginx_proxy_acme_email: "bric0l@proton.me"
+
+nginx_proxy_certificates:
+  - "portainer.bricoo.fr"
+  - "owncloud.bricoo.fr"

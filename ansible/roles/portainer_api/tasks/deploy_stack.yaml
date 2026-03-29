@@ -43,6 +43,7 @@
       StackFileContent: "{{ stack.compose_content }}"
     validate_certs: "{{ portainer_api_validate_certs }}"
     status_code: [200]
+    timeout: "{{ portainer_api_stack_timeout }}"
   when: not _stack_exists | bool
 
 - name: "Update stack {{ stack.name }}"
@@ -58,4 +59,5 @@
       PullImage: true
     validate_certs: "{{ portainer_api_validate_certs }}"
     status_code: [200]
+    timeout: "{{ portainer_api_stack_timeout }}"
   when: _stack_exists | bool

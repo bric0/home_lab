@@ -28,24 +28,26 @@
         group: root
         mode: "0600"
 
-    - name: Check if certificate already exists
+    - name: Check if certificates already exist
       ansible.builtin.stat:
-        path: "{{ nginx_proxy_data_dir }}/certs/live/portainer.bricoo.fr/fullchain.pem"
-      register: _cert_file
+        path: "{{ nginx_proxy_data_dir }}/certs/live/{{ item }}/fullchain.pem"
+      loop: "{{ nginx_proxy_certificates }}"
+      register: _cert_files
 
-    - name: Obtain Let's Encrypt certificate via DNS-01
+    - name: Obtain Let's Encrypt certificates via DNS-01
       ansible.builtin.command:
         cmd: >
           docker run --rm --network host
           -v {{ nginx_proxy_data_dir }}/certs:/etc/letsencrypt
           -v {{ nginx_proxy_data_dir }}/cloudflare.ini:/etc/cloudflare.ini:ro
-          certbot/dns-cloudflare:v5.4.0 certonly
+          certbot/dns-cloudflare:v{{ nginx_proxy_certbot_version }} certonly
           --dns-cloudflare
           --dns-cloudflare-credentials /etc/cloudflare.ini
-          -d portainer.bricoo.fr
+          -d {{ item.item }}
           --email {{ nginx_proxy_acme_email }}
           --agree-tos --non-interactive
           --dns-cloudflare-propagation-seconds 10
-      when: not _cert_file.stat.exists
+      loop: "{{ _cert_files.results }}"
+      when: not item.stat.exists
 
   become: true

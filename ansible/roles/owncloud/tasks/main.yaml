@@ -1,0 +1,15 @@
+---
+- name: Setting up ownCloud
+  block:
+    - name: Create ownCloud directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - "{{ owncloud_data_dir }}/files"
+        - "{{ owncloud_data_dir }}/mysql"
+        - "{{ owncloud_data_dir }}/redis"
+  become: true

@@ -1,0 +1,33 @@
+---
+- name: Deploy ownCloud configuration
+  hosts: homelab-prod-01
+  become: true
+  roles:
+    - owncloud
+
+- name: Deploy ownCloud stack via Portainer
+  hosts: homelab-infra-01
+  gather_facts: false
+  tasks:
+    - name: Load owncloud defaults
+      ansible.builtin.include_vars:
+        file: roles/owncloud/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render ownCloud docker-compose content
+      ansible.builtin.set_fact:
+        _owncloud_compose: "{{ lookup('template', 'roles/owncloud/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy ownCloud stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "owncloud"
+          endpoint_name: "homelab-prod-01"
+          compose_content: "{{ _owncloud_compose }}"

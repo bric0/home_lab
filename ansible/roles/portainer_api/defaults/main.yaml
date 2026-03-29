@@ -1,3 +1,5 @@
 ---
 portainer_api_url: "https://127.0.0.1:9443/api"
 portainer_api_validate_certs: false
+portainer_agent_port: 9001
+portainer_api_stack_timeout: 300
