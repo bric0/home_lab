@@ -1,4 +1,0 @@
-# Managed by Ansible - Pi-hole local DNS records
-{% for record in pihole_custom_dns %}
-{{ record.ip }} {{ record.hostname }}
-{% endfor %}

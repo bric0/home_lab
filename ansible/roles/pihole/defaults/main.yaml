@@ -1,9 +1,0 @@
----
-pihole_interface: "eth0"
-pihole_upstream_dns_1: "1.1.1.1"
-pihole_upstream_dns_2: "8.8.8.8"
-pihole_web_password: ""
-
-pihole_custom_dns:
-  - ip: "10.30.0.10"
-    hostname: "vpn.bricoo.fr"

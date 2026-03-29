@@ -25,7 +25,8 @@
     body:
       Name: "{{ endpoint_node.name }}"
       EndpointCreationType: "2"
-      URL: "{{ endpoint_node.ip }}:9001"
+      URL: "https://{{ endpoint_node.ip }}:9001"
+      TLS: "true"
       TLSSkipVerify: "true"
       TLSSkipClientVerify: "true"
     validate_certs: "{{ portainer_api_validate_certs }}"
