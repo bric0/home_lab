@@ -8,7 +8,7 @@
 # ============================================================
 
 - name: "Phase 1: Setup firewall"
-  hosts: homelab-firewall
+  hosts: homelab-firewall-01
   become: true
   vars:
     dns_servers:
@@ -37,7 +37,7 @@
     - portainer
 
 - name: "Phase 2.2: Wait for Portainer API to be ready"
-  hosts: homelab-infra
+  hosts: homelab-infra-01
   gather_facts: false
   tasks:
     - name: Wait for Portainer API to respond
@@ -55,7 +55,7 @@
 # ============================================================
 
 - name: "Phase 3: Initialize Portainer and register endpoints"
-  hosts: homelab-infra
+  hosts: homelab-infra-01
   gather_facts: false
   tasks:
     - name: Initialize Portainer admin account
@@ -81,16 +81,13 @@
 # ============================================================
 
 - name: "Phase 4.1: Deploy AdGuard config files to target host"
-  hosts: homelab-adguard
+  hosts: homelab-dmz-01
   become: true
-  vars:
-    dns_servers:
-      - "1.1.1.1"
   roles:
     - adguard
 
 - name: "Phase 4.2: Deploy AdGuard stack via Portainer API"
-  hosts: homelab-infra
+  hosts: homelab-infra-01
   gather_facts: false
   tasks:
     - name: Load adguard defaults
@@ -113,7 +110,7 @@
       vars:
         stack:
           name: "adguard"
-          endpoint_name: "homelab-adguard"
+          endpoint_name: "homelab-dmz-01"
           compose_content: "{{ _adguard_compose }}"
 
 # ============================================================
@@ -121,7 +118,7 @@
 # ============================================================
 
 - name: "Phase 5: Switch all hosts to AdGuard DNS"
-  hosts: homelab-firewall:docker_hosts
+  hosts: homelab-firewall-01:docker_hosts
   become: true
   tasks:
     - name: Deploy final DNS configuration
@@ -130,11 +127,48 @@
         tasks_from: dns.yaml
 
 # ============================================================
+# Phase 5.5: Deploy Nginx reverse proxy (needed before Headscale for ACME TLS-ALPN-01)
+# ============================================================
+
+- name: "Phase 5.5.1: Deploy Nginx reverse proxy config to DMZ"
+  hosts: homelab-dmz-01
+  become: true
+  roles:
+    - nginx_proxy
+
+- name: "Phase 5.5.2: Deploy Nginx stack via Portainer"
+  hosts: homelab-infra-01
+  gather_facts: false
+  tasks:
+    - name: Load nginx_proxy defaults
+      ansible.builtin.include_vars:
+        file: roles/nginx_proxy/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render Nginx docker-compose content
+      ansible.builtin.set_fact:
+        _nginx_compose: "{{ lookup('template', 'roles/nginx_proxy/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy Nginx stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "nginx-proxy"
+          endpoint_name: "homelab-dmz-01"
+          compose_content: "{{ _nginx_compose }}"
+
+# ============================================================
 # Phase 6: VPN (Headscale - systemd, unchanged)
 # ============================================================
 
 - name: "Phase 6.1: Setup Headscale"
-  hosts: homelab-vpn
+  hosts: homelab-vpn-01
   become: true
   roles:
     - common
@@ -142,7 +176,7 @@
 
 # Step 6.2: Create headscale user + preauth key (runs on VPN VM)
 - name: "Phase 6.2: Prepare headscale for firewall join"
-  hosts: homelab-vpn
+  hosts: homelab-vpn-01
   become: true
   tasks:
     - name: Wait for headscale to be ready
@@ -153,7 +187,7 @@
       until: hs_ready.rc == 0
 
     - name: Create headscale user
-      ansible.builtin.command: headscale users create homelab-firewall-01
+      ansible.builtin.command: headscale users create homelab-firewall-01-01
       register: user_create
       changed_when: "'User created' in user_create.stdout"
       failed_when: "user_create.rc != 0 and 'UNIQUE constraint' not in user_create.stderr"
@@ -161,7 +195,7 @@
     - name: Get firewall user ID
       ansible.builtin.shell: |
         headscale users list --output json \
-          | python3 -c "import sys,json; print(next(u['id'] for u in json.load(sys.stdin) if u['name']=='homelab-firewall-01'))"
+          | python3 -c "import sys,json; print(next(u['id'] for u in json.load(sys.stdin) if u['name']=='homelab-firewall-01-01'))"
       register: user_id_result
       changed_when: false
 
@@ -180,7 +214,7 @@
 
 # Step 6.3: Join firewall to tailnet (runs on firewall)
 - name: "Phase 6.3: Join firewall to Headscale tailnet"
-  hosts: homelab-firewall
+  hosts: homelab-firewall-01
   become: true
   vars:
     headscale_internal_url: "https://vpn.bricoo.fr:8080"
@@ -195,16 +229,16 @@
       ansible.builtin.shell: |
         tailscale up \
           --login-server={{ headscale_internal_url }} \
-          --authkey={{ hostvars['homelab-vpn']['firewall_preauth_key'] }} \
+          --authkey={{ hostvars['homelab-vpn-01']['firewall_preauth_key'] }} \
           --accept-dns=false \
           --accept-routes \
           --advertise-routes={{ advertise_routes | join(',') }} \
-          --hostname=homelab-firewall-01
+          --hostname=homelab-firewall-01-01
       changed_when: true
 
 # Step 6.4: Approve advertised routes (runs on VPN VM)
 - name: "Phase 6.4: Approve firewall routes"
-  hosts: homelab-vpn
+  hosts: homelab-vpn-01
   become: true
   vars:
     advertise_routes:
@@ -217,7 +251,7 @@
     - name: Get firewall node ID
       ansible.builtin.shell: |
         headscale nodes list --output json \
-          | python3 -c "import sys,json; print(next(n['id'] for n in json.load(sys.stdin) if n['given_name']=='homelab-firewall-01'))"
+          | python3 -c "import sys,json; print(next(n['id'] for n in json.load(sys.stdin) if n['given_name']=='homelab-firewall-01-01'))"
       register: node_id_result
       changed_when: false
 

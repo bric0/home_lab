@@ -1,7 +1,7 @@
 # Managed by Ansible
 services:
   nginx:
-    image: nginx:alpine
+    image: nginx:{{ nginx_proxy_nginx_version }}-alpine
     container_name: nginx-proxy
     restart: unless-stopped
     network_mode: host
@@ -10,9 +10,10 @@ services:
       - {{ nginx_proxy_data_dir }}/certs:/etc/nginx/certs:ro
 
   certbot-renew:
-    image: certbot/dns-cloudflare
+    image: certbot/dns-cloudflare:v{{ nginx_proxy_certbot_version }}
     container_name: certbot-renew
     restart: unless-stopped
+    network_mode: host
     volumes:
       - {{ nginx_proxy_data_dir }}/certs:/etc/letsencrypt
       - {{ nginx_proxy_data_dir }}/cloudflare.ini:/etc/cloudflare.ini:ro

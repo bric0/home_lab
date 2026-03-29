@@ -42,33 +42,114 @@ Internet
 | 30 - Infra | 10.30.0.0/24 | 10.30.0.1 | vpn-01 (Headscale), infra-01 (Portainer) |
 | 40 - Prod | 10.40.0.0/16 | 10.40.0.1 | prod-01, prod-02 (+ Talos k8s) |
 
-## Ordre de deploiement
+## Pattern de deploiement Portainer
 
-### Etape 1 : Firewall (manuel)
+Les services Docker ne sont **pas** deployes directement avec `docker compose` sur les VMs.
+Ils passent par l'API Portainer, centralisee sur `homelab-infra-01` (10.30.0.20).
+
+Chaque service Docker suit un deploiement en 2 plays :
+
+```
+Play 1 - Config (SSH direct sur le host cible)
+  |  Le role Ansible deploie les fichiers de config, certificats, etc.
+  |  Ex: /opt/adguardhome/conf/AdGuardHome.yaml
+  v
+Play 2 - Stack (via API Portainer sur homelab-infra-01)
+  1. Charger les variables du role   (include_vars)
+  2. S'authentifier a l'API          (portainer_api/authenticate.yaml -> portainer_jwt)
+  3. Rendre le docker-compose        (lookup template -> set_fact)
+  4. Deployer le stack                (portainer_api/deploy_stack.yaml)
+     -> Cree le stack si inexistant
+     -> Met a jour si deja present (pull image + prune)
+```
+
+Ce pattern est utilise pour **AdGuard** (phase 4), **Nginx** (phase 5.5), et tout futur service Docker.
+
+Les playbooks standalone (`adguard.yaml`, `nginx_proxy.yaml`) suivent le meme pattern et peuvent etre relances pour mettre a jour un service individuellement.
+
+### Exemple : deployer un nouveau service
+
+```yaml
+# 1. Creer le role avec config + docker-compose template
+# roles/mon-service/defaults/main.yaml
+# roles/mon-service/tasks/main.yaml       <- deploie les fichiers de config
+# roles/mon-service/templates/docker-compose.yaml.j2
+
+# 2. Playbook standalone (mon-service.yaml)
+- name: Deploy config files
+  hosts: homelab-dmz-01          # host cible
+  become: true
+  roles:
+    - mon-service
+
+- name: Deploy stack via Portainer
+  hosts: homelab-infra-01        # toujours infra-01 (serveur Portainer)
+  gather_facts: false
+  tasks:
+    - name: Load defaults
+      ansible.builtin.include_vars:
+        file: roles/mon-service/defaults/main.yaml
+
+    - name: Authenticate
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render compose
+      ansible.builtin.set_fact:
+        _compose: "{{ lookup('template', 'roles/mon-service/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "mon-service"
+          endpoint_name: "homelab-dmz-01"
+          compose_content: "{{ _compose }}"
+```
+
+### Infrastructure Portainer
+
+```
+homelab-infra-01 (10.30.0.20)          <- Portainer Server (port 9443) + Agent
+       |
+       |--- API (portainer_api role) -------> Gere les stacks Docker sur :
+       |                                        homelab-infra-01  (agent :9001)
+       |                                        homelab-dmz-01    (agent :9001)
+       |                                        homelab-prod-01   (agent :9001)
+       |                                        homelab-prod-02   (agent :9001)
+```
+
+Les endpoints sont enregistres dans Portainer en Phase 3 du bootstrap.
+Le `endpoint_name` dans `deploy_stack.yaml` correspond au `name` dans `portainer_nodes` (group_vars/all.yaml).
+
+## Deploiement from scratch
+
+### Etape 1 : Firewall
 
 ```bash
 ansible-playbook firewall.yaml
 ```
 
-Configure le firewall VM comme routeur central :
-- Interfaces VLAN (eth0.10/20/30/40)
-- nftables (inter-VLAN, DNAT 443 -> DMZ, DNS, admin/VPN full access)
-- DHCP relay (VLAN 40 -> AdGuard sur DMZ)
-- sysctl IP forwarding
+Configure le firewall VM comme routeur central.
+Roles : `common` (IP forwarding) + `firewall` (VLAN interfaces, nftables, DHCP relay).
 
 **Cible :** `homelab-firewall-01` (152.228.222.18:2222)
+**Apres cette etape :** les VMs internes sont joignables via le firewall (SSH ProxyJump).
 
-### Etape 2 : Docker + Portainer (manuel)
+### Etape 2 : Docker + Portainer
 
 ```bash
 ansible-playbook portainer.yaml
 ```
 
-Installe Docker CE et Portainer sur tous les docker_hosts :
-- **homelab-infra-01** : Portainer Server (port 9443) + Agent (port 9001)
-- **homelab-dmz-01, prod-01, prod-02** : Portainer Agent (port 9001)
+Installe Docker CE et Portainer sur les 4 docker_hosts.
+Le role `portainer` detecte automatiquement le type (server/agent) via `portainer_nodes`.
 
 **Cible :** `docker_hosts` (dmz-01, infra-01, prod-01, prod-02)
+**Apres cette etape :** Portainer server tourne sur infra-01:9443, les agents ecoutent sur :9001.
 
 ### Etape 3 : Bootstrap
 
@@ -76,37 +157,63 @@ Installe Docker CE et Portainer sur tous les docker_hosts :
 ansible-playbook bootstrap.yaml
 ```
 
-Enchaine les phases suivantes automatiquement :
+Enchaine automatiquement les phases suivantes :
 
-#### Phase 3 - Portainer API
+#### Phase 3 - Init Portainer API
 **Cible :** `homelab-infra-01`
-- Initialise le compte admin Portainer
-- Authentification API (JWT)
-- Enregistre les 4 endpoints (agents) dans Portainer
 
-#### Phase 4 - AdGuard Home
+Initialise Portainer pour pouvoir deployer des stacks :
+1. Cree le compte admin (`portainer_api/init_admin.yaml`)
+2. Obtient un JWT (`portainer_api/authenticate.yaml`)
+3. Enregistre les 4 endpoints agents (`portainer_api/register_endpoint.yaml` en boucle sur `portainer_nodes`)
+
+**Apres cette etape :** l'API Portainer est prete, les stacks peuvent etre deployes sur n'importe quel endpoint.
+
+#### Phase 4 - AdGuard Home (pattern Portainer)
 **Cible :** `homelab-dmz-01` puis `homelab-infra-01`
-- Deploie la config AdGuard sur dmz-01
-- Deploie le stack Docker via l'API Portainer
-- DNS : upstream 1.1.1.1/8.8.8.8, custom records (vpn.bricoo.fr, portainer.bricoo.fr -> 10.10.0.10)
+
+1. **Play config :** le role `adguard` deploie `AdGuardHome.yaml` sur dmz-01
+   - Upstream DNS : 1.1.1.1, 8.8.8.8
+   - Custom DNS : vpn.bricoo.fr, portainer.bricoo.fr -> 10.10.0.10
+   - DHCP : plage 10.40.0.100-10.40.0.99 (VLAN Prod via relay)
+2. **Play stack :** deploie le conteneur AdGuard sur l'endpoint `homelab-dmz-01` via Portainer API
+
+**Apres cette etape :** AdGuard repond sur 10.10.0.10:53.
 
 #### Phase 5 - Bascule DNS
 **Cible :** `homelab-firewall-01` + `docker_hosts`
-- Met a jour `/etc/resolv.conf` sur toutes les VMs pour pointer vers AdGuard (10.10.0.10)
 
-#### Phase 5.5 - Nginx Reverse Proxy
+Met a jour `/etc/resolv.conf` sur toutes les VMs pour pointer vers AdGuard (10.10.0.10).
+
+**Apres cette etape :** toute l'infra utilise AdGuard comme DNS.
+
+#### Phase 5.5 - Nginx Reverse Proxy (pattern Portainer)
 **Cible :** `homelab-dmz-01` puis `homelab-infra-01`
-- Deploie la config nginx sur dmz-01 (SNI routing + TLS termination)
-- Obtient le certificat Let's Encrypt via DNS-01 (Cloudflare)
-- Deploie le stack Docker via Portainer API
-- Routage : `vpn.bricoo.fr:443` -> headscale:8080, `portainer.bricoo.fr:443` -> portainer:9443
 
-#### Phase 6 - VPN (Headscale)
+1. **Play config :** le role `nginx_proxy` deploie nginx.conf + obtient le certificat Let's Encrypt (DNS-01 Cloudflare)
+2. **Play stack :** deploie le conteneur Nginx sur l'endpoint `homelab-dmz-01` via Portainer API
+
+Routage nginx :
+```
+:443 (L4 SNI) -> vpn.bricoo.fr       -> 10.30.0.10:8080 (Headscale)
+              -> *                    -> 127.0.0.1:8443 (L7 TLS termination)
+:8443 (L7)   -> portainer.bricoo.fr  -> 10.30.0.20:9443 (Portainer)
+```
+
+**Apres cette etape :** les services sont accessibles depuis Internet via vpn.bricoo.fr et portainer.bricoo.fr.
+
+#### Phase 6 - VPN Headscale
 **Cible :** `homelab-vpn-01` puis `homelab-firewall-01`
-1. Installe Headscale sur vpn-01 (systemd, TLS-ALPN-01 via nginx)
-2. Cree un utilisateur + preauth key
-3. Le firewall rejoint le tailnet et advertise toutes les routes (4 VLANs + management)
-4. Approbation des routes sur headscale
+
+Headscale est un service **systemd** (pas Docker), donc pas de pattern Portainer ici.
+
+1. **6.1** : Installe Headscale sur vpn-01 (roles `common` + `vpn`). Le certificat TLS est obtenu via ACME TLS-ALPN-01, le trafic arrive via nginx (Phase 5.5).
+2. **6.2** : Cree un utilisateur headscale + preauth key (1h, reusable)
+3. **6.3** : Le firewall rejoint le tailnet (`tailscale up --login-server=https://vpn.bricoo.fr`) et advertise les routes :
+   - 10.10.0.0/24, 10.20.0.0/24, 10.30.0.0/24, 10.40.0.0/16, 192.168.10.0/29
+4. **6.4** : Approbation des routes sur headscale
+
+**Apres cette etape :** l'infra est accessible via VPN Tailscale depuis n'importe ou.
 
 ### Etape 4 : Talos Kubernetes (optionnel)
 
@@ -114,11 +221,25 @@ Enchaine les phases suivantes automatiquement :
 ansible-playbook talos.yaml
 ```
 
-Deploie un cluster Kubernetes Talos sur le VLAN Prod :
-- Control plane : talos-cp-01 (10.40.0.101)
+Deploie un cluster Kubernetes Talos sur le VLAN Prod.
+S'execute en local (talosctl), pas de SSH vers les noeuds Talos.
+
+- Control plane : talos-cp-01 (10.40.0.101), VIP : 10.40.0.105
 - Worker : talos-worker-01 (10.40.0.111)
-- VIP API : 10.40.0.105:6443
 - CNI : Cilium
+
+## Mise a jour d'un service
+
+Pour mettre a jour la config d'un service existant, relancer son playbook standalone.
+Le pattern Portainer gere l'idempotence : le stack est cree s'il n'existe pas, mis a jour sinon (pull image + prune).
+
+```bash
+# Modifier roles/adguard/defaults/main.yaml ou templates, puis :
+ansible-playbook adguard.yaml
+
+# Idem pour nginx :
+ansible-playbook nginx_proxy.yaml
+```
 
 ## Variables globales
 

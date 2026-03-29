@@ -7,7 +7,7 @@
         state: directory
         owner: root
         group: root
-        mode: '0755'
+        mode: "0755"
       loop:
         - "{{ nginx_proxy_data_dir }}"
         - "{{ nginx_proxy_data_dir }}/certs"
@@ -18,7 +18,7 @@
         dest: "{{ nginx_proxy_data_dir }}/nginx.conf"
         owner: root
         group: root
-        mode: '0644'
+        mode: "0644"
 
     - name: Deploy Cloudflare credentials
       ansible.builtin.template:
@@ -26,7 +26,7 @@
         dest: "{{ nginx_proxy_data_dir }}/cloudflare.ini"
         owner: root
         group: root
-        mode: '0600'
+        mode: "0600"
 
     - name: Check if certificate already exists
       ansible.builtin.stat:
@@ -36,15 +36,16 @@
     - name: Obtain Let's Encrypt certificate via DNS-01
       ansible.builtin.command:
         cmd: >
-          docker run --rm
+          docker run --rm --network host
           -v {{ nginx_proxy_data_dir }}/certs:/etc/letsencrypt
           -v {{ nginx_proxy_data_dir }}/cloudflare.ini:/etc/cloudflare.ini:ro
-          certbot/dns-cloudflare certonly
+          certbot/dns-cloudflare:v5.4.0 certonly
           --dns-cloudflare
           --dns-cloudflare-credentials /etc/cloudflare.ini
           -d portainer.bricoo.fr
           --email {{ nginx_proxy_acme_email }}
           --agree-tos --non-interactive
+          --dns-cloudflare-propagation-seconds 10
       when: not _cert_file.stat.exists
 
   become: true

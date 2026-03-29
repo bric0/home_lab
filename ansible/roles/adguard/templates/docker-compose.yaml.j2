@@ -1,7 +1,7 @@
 # Managed by Ansible
 services:
   adguardhome:
-    image: adguard/adguardhome
+    image: adguard/adguardhome:v{{ adguard_version }}
     container_name: adguardhome
     restart: unless-stopped
     network_mode: host
