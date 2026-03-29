@@ -5,5 +5,5 @@ owncloud_redis_version: "6.2.16"
 
 owncloud_data_dir: "/opt/owncloud"
 owncloud_http_port: 8080
-owncloud_domain: "owncloud.bricoo.fr"
+owncloud_domain: "files.bricoo.fr"
 owncloud_admin_username: "admin"

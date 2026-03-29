@@ -46,7 +46,7 @@
           -d {{ item.item }}
           --email {{ nginx_proxy_acme_email }}
           --agree-tos --non-interactive
-          --dns-cloudflare-propagation-seconds 10
+          --dns-cloudflare-propagation-seconds {{ nginx_proxy_certbot_propagation_seconds }}
       loop: "{{ _cert_files.results }}"
       when: not item.stat.exists
 
