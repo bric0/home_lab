@@ -1,0 +1,33 @@
+---
+- name: Deploy Vaultwarden configuration
+  hosts: homelab-prod-01
+  become: true
+  roles:
+    - vaultwarden
+
+- name: Deploy Vaultwarden stack via Portainer
+  hosts: homelab-infra-01
+  gather_facts: false
+  tasks:
+    - name: Load vaultwarden defaults
+      ansible.builtin.include_vars:
+        file: roles/vaultwarden/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render Vaultwarden docker-compose content
+      ansible.builtin.set_fact:
+        _vaultwarden_compose: "{{ lookup('template', 'roles/vaultwarden/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy Vaultwarden stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "vaultwarden"
+          endpoint_name: "homelab-prod-01"
+          compose_content: "{{ _vaultwarden_compose }}"

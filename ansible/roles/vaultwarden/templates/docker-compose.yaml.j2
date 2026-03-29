@@ -1,0 +1,16 @@
+# Managed by Ansible
+services:
+  vaultwarden:
+    image: vaultwarden/server:{{ vaultwarden_version }}
+    container_name: vaultwarden
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - DOMAIN=https://{{ vaultwarden_domain }}
+      - ROCKET_PORT={{ vaultwarden_port }}
+      - SIGNUPS_ALLOWED={{ vaultwarden_signups_allowed | lower }}
+{% if vaultwarden_admin_enabled %}
+      - ADMIN_TOKEN={{ vaultwarden_admin_token }}
+{% endif %}
+    volumes:
+      - {{ vaultwarden_data_dir }}/data:/data
