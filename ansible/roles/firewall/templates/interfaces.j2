@@ -2,19 +2,19 @@
 auto lo
 iface lo inet loopback
 
-auto {{ firewall_base_interface }}
-iface {{ firewall_base_interface }} inet manual
+auto eth0
+iface eth0 inet manual
     pre-up ip link set dev $IFACE up
     post-down ip link set dev $IFACE down
 
-auto {{ firewall_management_interface }}
-iface {{ firewall_management_interface }} inet static
+auto eth1
+iface eth1 inet static
     address {{ firewall_management_ip }}
     gateway {{ firewall_management_gateway }}
     dns-nameservers {{ firewall_dns_servers }}
 {% for vlan in firewall_vlans %}
 
-auto {{ firewall_base_interface }}.{{ vlan.id }}
-iface {{ firewall_base_interface }}.{{ vlan.id }} inet static
+auto eth0.{{ vlan.id }}
+iface eth0.{{ vlan.id }} inet static
     address {{ vlan.address }}
 {% endfor %}
