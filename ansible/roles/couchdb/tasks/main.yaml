@@ -1,0 +1,22 @@
+---
+- name: Setting up CouchDB
+  block:
+    - name: Create CouchDB data directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - "{{ couchdb_data_dir }}/data"
+        - "{{ couchdb_data_dir }}/etc"
+
+    - name: Deploy CouchDB local configuration
+      ansible.builtin.template:
+        src: local.ini.j2
+        dest: "{{ couchdb_data_dir }}/etc/local.ini"
+        owner: root
+        group: root
+        mode: '0644'
+  become: true

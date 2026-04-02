@@ -1,0 +1,13 @@
+# Managed by Ansible
+services:
+  couchdb:
+    image: couchdb:{{ couchdb_version }}
+    container_name: couchdb
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - COUCHDB_USER={{ couchdb_user }}
+      - COUCHDB_PASSWORD={{ couchdb_password }}
+    volumes:
+      - {{ couchdb_data_dir }}/data:/opt/couchdb/data
+      - {{ couchdb_data_dir }}/etc:/opt/couchdb/etc/local.d

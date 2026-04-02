@@ -1,0 +1,62 @@
+---
+- name: Deploy CouchDB configuration
+  hosts: homelab-prod-01
+  become: true
+  roles:
+    - couchdb
+
+- name: Deploy CouchDB stack via Portainer
+  hosts: homelab-infra-01
+  gather_facts: false
+  tasks:
+    - name: Load couchdb defaults
+      ansible.builtin.include_vars:
+        file: roles/couchdb/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render CouchDB docker-compose content
+      ansible.builtin.set_fact:
+        _couchdb_compose: "{{ lookup('template', 'roles/couchdb/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy CouchDB stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "couchdb"
+          endpoint_name: "homelab-prod-01"
+          compose_content: "{{ _couchdb_compose }}"
+
+- name: Create CouchDB database
+  hosts: homelab-prod-01
+  gather_facts: false
+  tasks:
+    - name: Load couchdb defaults
+      ansible.builtin.include_vars:
+        file: roles/couchdb/defaults/main.yaml
+
+    - name: Wait for CouchDB to be ready
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ couchdb_port }}/_up"
+        user: "{{ couchdb_user }}"
+        password: "{{ couchdb_password }}"
+        force_basic_auth: true
+        status_code: 200
+      register: _couchdb_health
+      until: _couchdb_health.status == 200
+      retries: 10
+      delay: 3
+
+    - name: Create obsidian_brico database
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ couchdb_port }}/{{ couchdb_database }}"
+        method: PUT
+        user: "{{ couchdb_user }}"
+        password: "{{ couchdb_password }}"
+        force_basic_auth: true
+        status_code: [201, 412]

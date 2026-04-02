@@ -1,0 +1,7 @@
+---
+couchdb_version: "3.4.2"
+
+couchdb_data_dir: "/opt/couchdb"
+couchdb_port: 5984
+couchdb_domain: "couchdb.bricoo.fr"
+couchdb_database: "obsidian_brico"
