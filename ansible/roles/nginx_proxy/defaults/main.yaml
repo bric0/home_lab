@@ -13,3 +13,4 @@ nginx_proxy_certificates:
   - "adguard.bricoo.fr"
   - "couchdb.bricoo.fr"
   - "pve-01.bricoo.fr"
+  - "immich.bricoo.fr"

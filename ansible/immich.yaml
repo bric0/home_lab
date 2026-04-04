@@ -1,0 +1,33 @@
+---
+- name: Deploy Immich configuration
+  hosts: homelab-prod-01
+  become: true
+  roles:
+    - immich
+
+- name: Deploy Immich stack via Portainer
+  hosts: homelab-infra-01
+  gather_facts: false
+  tasks:
+    - name: Load immich defaults
+      ansible.builtin.include_vars:
+        file: roles/immich/defaults/main.yaml
+
+    - name: Authenticate to Portainer API
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: authenticate.yaml
+
+    - name: Render Immich docker-compose content
+      ansible.builtin.set_fact:
+        _immich_compose: "{{ lookup('template', 'roles/immich/templates/docker-compose.yaml.j2') }}"
+
+    - name: Deploy Immich stack
+      ansible.builtin.include_role:
+        name: portainer_api
+        tasks_from: deploy_stack.yaml
+      vars:
+        stack:
+          name: "immich"
+          endpoint_name: "homelab-prod-01"
+          compose_content: "{{ _immich_compose }}"

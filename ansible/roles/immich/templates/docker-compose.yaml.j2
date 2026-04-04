@@ -1,0 +1,62 @@
+# Managed by Ansible
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:v{{ immich_version }}
+    container_name: immich_server
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      immich-postgres:
+        condition: service_healthy
+      immich-redis:
+        condition: service_healthy
+    environment:
+      - DB_HOSTNAME=127.0.0.1
+      - DB_PORT={{ immich_db_port }}
+      - DB_USERNAME={{ immich_db_user }}
+      - DB_PASSWORD={{ immich_db_password }}
+      - DB_DATABASE_NAME={{ immich_db_name }}
+      - REDIS_HOSTNAME=127.0.0.1
+      - REDIS_PORT={{ immich_redis_port }}
+      - IMMICH_PORT={{ immich_port }}
+    volumes:
+      - {{ immich_data_dir }}/upload:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:v{{ immich_version }}
+    container_name: immich_machine_learning
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - {{ immich_data_dir }}/model-cache:/cache
+
+  immich-redis:
+    image: valkey/valkey:{{ immich_valkey_version }}
+    container_name: immich_redis
+    restart: unless-stopped
+    network_mode: host
+    command: --port {{ immich_redis_port }}
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-p", "{{ immich_redis_port }}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  immich-postgres:
+    image: ghcr.io/immich-app/postgres:{{ immich_postgres_version }}
+    container_name: immich_postgres
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - POSTGRES_PASSWORD={{ immich_db_password }}
+      - POSTGRES_USER={{ immich_db_user }}
+      - POSTGRES_DB={{ immich_db_name }}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d {{ immich_db_name }} -U {{ immich_db_user }}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - {{ immich_data_dir }}/postgres:/var/lib/postgresql/data

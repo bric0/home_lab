@@ -1,0 +1,13 @@
+---
+immich_version: "2.6.3"
+immich_postgres_version: "14-vectorchord0.4.3-pgvectors0.2.0"
+immich_valkey_version: "9"
+
+immich_data_dir: "/opt/immich"
+immich_port: 2283
+immich_ml_port: 3003
+immich_redis_port: 6380
+immich_db_port: 5432
+immich_domain: "immich.bricoo.fr"
+immich_db_name: "immich"
+immich_db_user: "postgres"

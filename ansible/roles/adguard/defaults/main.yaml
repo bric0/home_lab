@@ -28,6 +28,8 @@ adguard_custom_dns:
     answer: "10.10.0.10"
   - domain: "pve-01.bricoo.fr"
     answer: "10.10.0.10"
+  - domain: "immich.bricoo.fr"
+    answer: "10.10.0.10"
 
 # DHCP server
 adguard_dhcp_enabled: false
