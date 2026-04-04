@@ -95,4 +95,8 @@ resource "proxmox_virtual_environment_vm" "debian_clone" {
   }
 
   tags = var.vm_tags
+
+  lifecycle {
+    ignore_changes = [initialization]
+  }
 }

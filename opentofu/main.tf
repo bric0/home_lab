@@ -45,7 +45,7 @@ module "homelab_dmz_01" {
   vm_gateway  = "10.10.0.1"
   vlan_id     = 10
   vm_password = var.vm_password
-  vm_tags     = ["10-DMZ"]
+  vm_tags     = ["10-dmz"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
@@ -69,7 +69,7 @@ module "homelab_admin_01" {
   vm_gateway  = "10.20.0.1"
   vlan_id     = 20
   vm_password = var.vm_password
-  vm_tags     = ["20-ADMIN"]
+  vm_tags     = ["20-admin"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
@@ -93,7 +93,7 @@ module "homelab_vpn_01" {
   vm_gateway  = "10.30.0.1"
   vlan_id     = 30
   vm_password = var.vm_password
-  vm_tags     = ["30-INFRA"]
+  vm_tags     = ["30-infra"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
@@ -117,7 +117,7 @@ module "homelab_infra_01" {
   vm_gateway  = "10.30.0.1"
   vlan_id     = 30
   vm_password = var.vm_password
-  vm_tags     = ["30-INFRA"]
+  vm_tags     = ["30-infra"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
@@ -134,14 +134,14 @@ module "homelab_prod_01" {
 
   template_id = 9000
   cpu_number  = 2
-  memory_size = 4096
+  memory_size = 12288
   disk_size   = 100
 
   vm_ip       = "10.40.0.10/16"
   vm_gateway  = "10.40.0.1"
   vlan_id     = 40
   vm_password = var.vm_password
-  vm_tags     = ["40-PROD"]
+  vm_tags     = ["40-prod"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
@@ -165,7 +165,7 @@ module "homelab_prod_02" {
   vm_gateway  = "10.40.0.1"
   vlan_id     = 40
   vm_password = var.vm_password
-  vm_tags     = ["40-PROD"]
+  vm_tags     = ["40-prod"]
 
   ssh_keys    = [file("~/.ssh/ovh-homelab.pub")]
 }
